@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "918813189040",
+    "project_id": "school-master-39ecc",
+    "storage_bucket": "school-master-39ecc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:918813189040:android:6e7502388ad7ce64946c75",
+        "android_client_info": {
+          "package_name": "com.example.uba"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA1TkNnNl5KyqncJ2pyOfZ6P2pFkrX-9Yo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
