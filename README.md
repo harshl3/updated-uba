@@ -3,4 +3,4 @@
 A new Flutter project.
 installed git in another pc 
 
-separate fiebase projects initialized for seprate schools.
+separate firebase projects initialized for seprate schools.
