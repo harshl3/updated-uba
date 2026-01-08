@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'dashboard_page.dart';
+import 'student/studentdashboard_screen.dart';
+import 'teacher/teacherdashboard_screen.dart';
 import 'constants/app_constants.dart';
 import 'services/auth_service.dart';
+import 'theme/app_colors.dart';
 
 /// Login page for both teachers and students.
 /// 
@@ -65,44 +67,56 @@ class _LoginPageState extends State<LoginPage> {
 
       final user = userCredential.user;
       if (user != null) {
-        // Login successful - navigate to dashboard
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => DashboardPage(
-              schoolCode: widget.schoolCode,
-              role: widget.role,
-              email: email,
-              userId: user.uid,
+        // Login successful - navigate to appropriate dashboard based on role
+        if (widget.role == AppConstants.roleTeacher) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => TeacherDashboardScreen(
+                schoolCode: widget.schoolCode,
+                email: email,
+                userId: user.uid,
+              ),
             ),
-          ),
-        );
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => StudentDashboardScreen(
+                schoolCode: widget.schoolCode,
+                email: email,
+                userId: user.uid,
+              ),
+            ),
+          );
+        }
       } else {
         throw AuthException('Login failed: No user returned');
       }
     } on AuthException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.message),
-          backgroundColor: Colors.red,
-          duration: AppConstants.snackbarDurationLong,
-          action: SnackBarAction(
-            label: 'OK',
-            textColor: Colors.white,
-            onPressed: () {},
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message),
+            backgroundColor: AppColors.red,
+            duration: AppConstants.snackbarDurationLong,
+            action: SnackBarAction(
+              label: 'OK',
+              textColor: AppColors.textWhite,
+              onPressed: () {},
+            ),
           ),
-        ),
-      );
+        );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Login failed: ${e.toString()}'),
-          backgroundColor: Colors.red,
-          duration: AppConstants.snackbarDurationLong,
-        ),
-      );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Login failed: ${e.toString()}'),
+            backgroundColor: AppColors.red,
+            duration: AppConstants.snackbarDurationLong,
+          ),
+        );
     } finally {
       if (mounted) {
         setState(() {
@@ -132,8 +146,6 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text("${widget.role.toUpperCase()} Login"),
-        backgroundColor: Colors.blueAccent,
-        foregroundColor: Colors.white,
       ),
       body: Container(
         padding: const EdgeInsets.all(24),

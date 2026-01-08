@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'services/auth_service.dart';
 import 'constants/app_constants.dart';
+import 'theme/app_colors.dart';
 
 /// Student Registration Page - Only accessible by teachers.
 /// 
 /// Teachers can register new students for their own school only.
-/// Students are created in Firebase Auth and Firestore with school isolation.
+/// Includes extended fields: father's name, address, gender, DOB, mobile, etc.
+/// All extended fields are optional.
 class StudentRegistrationPage extends StatefulWidget {
   final String schoolCode;
 
@@ -20,16 +22,30 @@ class StudentRegistrationPage extends StatefulWidget {
 
 class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  
+  // Required fields
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
+  
+  // Optional basic fields
   final TextEditingController _classNameController = TextEditingController();
   final TextEditingController _rollNumberController = TextEditingController();
+  
+  // Extended optional fields
+  final TextEditingController _fathersNameController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _dobController = TextEditingController();
+  final TextEditingController _mobileNumberController = TextEditingController();
+  final TextEditingController _dateOfAdmissionController = TextEditingController();
+  final TextEditingController _previousPercentageController = TextEditingController();
+  final TextEditingController _parentsMobileNumberController = TextEditingController();
 
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  String? _selectedGender; // Gender dropdown value
 
   @override
   void dispose() {
@@ -39,45 +55,68 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
     _confirmPasswordController.dispose();
     _classNameController.dispose();
     _rollNumberController.dispose();
+    _fathersNameController.dispose();
+    _addressController.dispose();
+    _dobController.dispose();
+    _mobileNumberController.dispose();
+    _dateOfAdmissionController.dispose();
+    _previousPercentageController.dispose();
+    _parentsMobileNumberController.dispose();
     super.dispose();
   }
 
-  /// Handles student registration.
-  /// Creates student account in Firebase Auth and Firestore.
+  /// Handles student registration with all fields.
   Future<void> _handleRegistration() async {
-    // Validate form
     if (!_formKey.currentState!.validate()) {
       return;
     }
-
-    final String name = _nameController.text.trim();
-    final String email = _emailController.text.trim();
-    final String password = _passwordController.text.trim();
-    final String className = _classNameController.text.trim();
-    final String rollNumber = _rollNumberController.text.trim();
 
     setState(() {
       _isLoading = true;
     });
 
     try {
-      // Register student using AuthService
       await AuthService.registerStudent(
         schoolCode: widget.schoolCode,
-        email: email,
-        password: password,
-        name: name,
-        className: className.isNotEmpty ? className : null,
-        rollNumber: rollNumber.isNotEmpty ? rollNumber : null,
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+        name: _nameController.text.trim(),
+        className: _classNameController.text.trim().isNotEmpty 
+            ? _classNameController.text.trim() 
+            : null,
+        rollNumber: _rollNumberController.text.trim().isNotEmpty 
+            ? _rollNumberController.text.trim() 
+            : null,
+        fathersName: _fathersNameController.text.trim().isNotEmpty 
+            ? _fathersNameController.text.trim() 
+            : null,
+        address: _addressController.text.trim().isNotEmpty 
+            ? _addressController.text.trim() 
+            : null,
+        gender: _selectedGender,
+        dob: _dobController.text.trim().isNotEmpty 
+            ? _dobController.text.trim() 
+            : null,
+        mobileNumber: _mobileNumberController.text.trim().isNotEmpty 
+            ? _mobileNumberController.text.trim() 
+            : null,
+        dateOfAdmission: _dateOfAdmissionController.text.trim().isNotEmpty 
+            ? _dateOfAdmissionController.text.trim() 
+            : null,
+        previousPercentage: _previousPercentageController.text.trim().isNotEmpty 
+            ? _previousPercentageController.text.trim() 
+            : null,
+        parentsMobileNumber: _parentsMobileNumberController.text.trim().isNotEmpty 
+            ? _parentsMobileNumberController.text.trim() 
+            : null,
       );
 
       if (!mounted) return;
 
-      // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Student "$name" registered successfully!'),
-          backgroundColor: Colors.green,
+          content: Text('Student "${_nameController.text.trim()}" registered successfully!'),
+          backgroundColor: AppColors.green,
           duration: AppConstants.snackbarDurationLong,
         ),
       );
@@ -90,21 +129,23 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
       _confirmPasswordController.clear();
       _classNameController.clear();
       _rollNumberController.clear();
-
-      // Optionally navigate back or stay on page for multiple registrations
-      // Navigator.pop(context);
+      _fathersNameController.clear();
+      _addressController.clear();
+      _dobController.clear();
+      _mobileNumberController.clear();
+      _dateOfAdmissionController.clear();
+      _previousPercentageController.clear();
+      _parentsMobileNumberController.clear();
+      setState(() {
+        _selectedGender = null;
+      });
     } on AuthException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.message),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.red,
           duration: AppConstants.snackbarDurationLong,
-          action: SnackBarAction(
-            label: 'OK',
-            textColor: Colors.white,
-            onPressed: () {},
-          ),
         ),
       );
     } catch (e) {
@@ -112,7 +153,7 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Registration failed: ${e.toString()}'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.red,
           duration: AppConstants.snackbarDurationLong,
         ),
       );
@@ -125,13 +166,24 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
     }
   }
 
+  /// Shows date picker for DOB
+  Future<void> _selectDate(TextEditingController controller, String label) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1990),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+      controller.text = '${picked.day}/${picked.month}/${picked.year}';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Register New Student'),
-        backgroundColor: Colors.blueAccent,
-        foregroundColor: Colors.white,
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -161,7 +213,7 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
                         const Icon(
                           Icons.person_add,
                           size: 48,
-                          color: Colors.blueAccent,
+                          color: AppColors.primaryBlue,
                         ),
                         const SizedBox(height: 8),
                         Text(
@@ -169,7 +221,7 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
                           style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blueAccent,
+                            color: AppColors.primaryBlue,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -177,7 +229,7 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
                           'Register New Student',
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.grey,
+                            color: AppColors.textSecondary,
                           ),
                         ),
                       ],
@@ -185,23 +237,24 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Name field
-                TextFormField(
-                  controller: _nameController,
-                  decoration: InputDecoration(
-                    labelText: "Student Name *",
-                    hintText: "Enter full name",
-                    prefixIcon: const Icon(Icons.person),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.grey),
-                    ),
+                
+                // Required Fields Section
+                const Text(
+                  'Required Information',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textWhite,
                   ),
+                ),
+                const SizedBox(height: 16),
+                
+                // Name
+                _buildTextField(
+                  controller: _nameController,
+                  label: 'Student Name *',
+                  hint: 'Enter full name',
+                  icon: Icons.person,
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Student name is required';
@@ -210,24 +263,14 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                // Email field
-                TextFormField(
+                
+                // Email
+                _buildTextField(
                   controller: _emailController,
+                  label: 'Email *',
+                  hint: 'student@example.com',
+                  icon: Icons.email,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    labelText: "Email *",
-                    hintText: "student@example.com",
-                    prefixIcon: const Icon(Icons.email),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.grey),
-                    ),
-                  ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Email is required';
@@ -240,34 +283,18 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                // Password field
-                TextFormField(
+                
+                // Password
+                _buildPasswordField(
                   controller: _passwordController,
+                  label: 'Password *',
+                  hint: 'Minimum 6 characters',
                   obscureText: _obscurePassword,
-                  decoration: InputDecoration(
-                    labelText: "Password *",
-                    hintText: "Minimum 6 characters",
-                    prefixIcon: const Icon(Icons.lock),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.grey),
-                    ),
-                  ),
+                  onToggle: () {
+                    setState(() {
+                      _obscurePassword = !_obscurePassword;
+                    });
+                  },
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Password is required';
@@ -279,36 +306,18 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                // Confirm password field
-                TextFormField(
+                
+                // Confirm Password
+                _buildPasswordField(
                   controller: _confirmPasswordController,
+                  label: 'Confirm Password *',
+                  hint: 'Re-enter password',
                   obscureText: _obscureConfirmPassword,
-                  decoration: InputDecoration(
-                    labelText: "Confirm Password *",
-                    hintText: "Re-enter password",
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureConfirmPassword
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscureConfirmPassword = !_obscureConfirmPassword;
-                        });
-                      },
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.grey),
-                    ),
-                  ),
+                  onToggle: () {
+                    setState(() {
+                      _obscureConfirmPassword = !_obscureConfirmPassword;
+                    });
+                  },
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please confirm password';
@@ -319,53 +328,146 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
-                // Class name field (optional)
-                TextFormField(
-                  controller: _classNameController,
-                  decoration: InputDecoration(
-                    labelText: "Class Name (Optional)",
-                    hintText: "e.g., Class 10-A",
-                    prefixIcon: const Icon(Icons.class_),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.grey),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Roll number field (optional)
-                TextFormField(
-                  controller: _rollNumberController,
-                  decoration: InputDecoration(
-                    labelText: "Roll Number (Optional)",
-                    hintText: "e.g., 001",
-                    prefixIcon: const Icon(Icons.numbers),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.grey),
-                    ),
-                  ),
-                ),
+                
                 const SizedBox(height: 32),
+                
+                // Optional Fields Section
+                const Text(
+                  'Additional Information (Optional)',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textWhite,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                
+                // Class Name
+                _buildTextField(
+                  controller: _classNameController,
+                  label: 'Class Name',
+                  hint: 'e.g., Class 10-A',
+                  icon: Icons.class_,
+                ),
+                const SizedBox(height: 16),
+                
+                // Roll Number
+                _buildTextField(
+                  controller: _rollNumberController,
+                  label: 'Roll Number',
+                  hint: 'e.g., 001',
+                  icon: Icons.numbers,
+                ),
+                const SizedBox(height: 16),
+                
+                // Father's Name
+                _buildTextField(
+                  controller: _fathersNameController,
+                  label: "Father's Name",
+                  hint: 'Enter father\'s name',
+                  icon: Icons.person_outline,
+                ),
+                const SizedBox(height: 16),
+                
+                // Gender Dropdown
+                DropdownButtonFormField<String>(
+                  value: _selectedGender,
+                  decoration: InputDecoration(
+                    labelText: 'Gender',
+                    hintText: 'Select gender',
+                    prefixIcon: const Icon(Icons.wc),
+                    filled: true,
+                    fillColor: AppColors.cardWhite,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: AppColors.borderLight),
+                    ),
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: 'Male', child: Text('Male')),
+                    DropdownMenuItem(value: 'Female', child: Text('Female')),
+                    DropdownMenuItem(value: 'Other', child: Text('Other')),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedGender = value;
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
+                
+                // Date of Birth
+                _buildDateField(
+                  controller: _dobController,
+                  label: 'Date of Birth',
+                  hint: 'Select date',
+                  icon: Icons.calendar_today,
+                  onTap: () => _selectDate(_dobController, 'Date of Birth'),
+                ),
+                const SizedBox(height: 16),
+                
+                // Mobile Number
+                _buildTextField(
+                  controller: _mobileNumberController,
+                  label: 'Mobile Number',
+                  hint: 'Enter mobile number',
+                  icon: Icons.phone,
+                  keyboardType: TextInputType.phone,
+                ),
+                const SizedBox(height: 16),
+                
+                // Date of Admission
+                _buildDateField(
+                  controller: _dateOfAdmissionController,
+                  label: 'Date of Admission',
+                  hint: 'Select date',
+                  icon: Icons.event,
+                  onTap: () => _selectDate(_dateOfAdmissionController, 'Date of Admission'),
+                ),
+                const SizedBox(height: 16),
+                
+                // Previous Percentage
+                _buildTextField(
+                  controller: _previousPercentageController,
+                  label: 'Previous Percentage',
+                  hint: 'e.g., 85.5',
+                  icon: Icons.percent,
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 16),
+                
+                // Address
+                _buildTextField(
+                  controller: _addressController,
+                  label: 'Address',
+                  hint: 'Enter address',
+                  icon: Icons.location_on,
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 16),
+                
+                // Parent's Mobile Number
+                _buildTextField(
+                  controller: _parentsMobileNumberController,
+                  label: "Parent's Mobile Number",
+                  hint: 'Enter parent\'s mobile number',
+                  icon: Icons.phone_android,
+                  keyboardType: TextInputType.phone,
+                ),
+                
+                const SizedBox(height: 32),
+                
                 // Register button
                 SizedBox(
                   height: 50,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleRegistration,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent,
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppColors.primaryBlue,
+                      foregroundColor: AppColors.textWhite,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -390,9 +492,10 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
+                
                 // Info text
                 Text(
-                  '* Required fields\nStudent will be registered in School ${widget.schoolCode} only.',
+                  '* Required fields\nAll other fields are optional.\nStudent will be registered in School ${widget.schoolCode} only.',
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 12,
@@ -407,5 +510,99 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
       ),
     );
   }
-}
 
+  /// Builds a standard text field
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    TextInputType? keyboardType,
+    int maxLines = 1,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      maxLines: maxLines,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        prefixIcon: Icon(icon),
+        filled: true,
+        fillColor: AppColors.cardWhite,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.borderLight),
+        ),
+      ),
+      validator: validator,
+    );
+  }
+
+  /// Builds a password field
+  Widget _buildPasswordField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required bool obscureText,
+    required VoidCallback onToggle,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        prefixIcon: const Icon(Icons.lock),
+        suffixIcon: IconButton(
+          icon: Icon(obscureText ? Icons.visibility : Icons.visibility_off),
+          onPressed: onToggle,
+        ),
+        filled: true,
+        fillColor: AppColors.cardWhite,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.borderLight),
+        ),
+      ),
+      validator: validator,
+    );
+  }
+
+  /// Builds a date field with date picker
+  Widget _buildDateField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return TextFormField(
+      controller: controller,
+      readOnly: true,
+      onTap: onTap,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        prefixIcon: Icon(icon),
+        filled: true,
+        fillColor: AppColors.cardWhite,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.borderLight),
+        ),
+      ),
+    );
+  }
+}

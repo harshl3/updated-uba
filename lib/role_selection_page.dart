@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login_page.dart';
 import 'constants/app_constants.dart';
+import 'theme/app_colors.dart';
 
 /// Role selection page - allows users to choose between Teacher or Student login.
 /// 
@@ -14,18 +15,10 @@ class RoleSelectionPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Select Role"),
-        backgroundColor: Colors.blueAccent,
-        foregroundColor: Colors.white,
       ),
       body: Container(
         padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF4A90E2), Color(0xFF50E3C2)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
+        color: AppColors.backgroundLight,
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -43,7 +36,7 @@ class RoleSelectionPage extends StatelessWidget {
                       const Icon(
                         Icons.school,
                         size: 48,
-                        color: Colors.blueAccent,
+                        color: AppColors.primaryBlue,
                       ),
                       const SizedBox(height: 12),
                       Text(
@@ -51,7 +44,7 @@ class RoleSelectionPage extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blueAccent,
+                          color: AppColors.primaryBlue,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -59,7 +52,7 @@ class RoleSelectionPage extends StatelessWidget {
                         "Select Your Role",
                         style: TextStyle(
                           fontSize: 18,
-                          color: Colors.grey,
+                          color: AppColors.textSecondary,
                         ),
                       ),
                     ],
@@ -92,8 +85,8 @@ class RoleSelectionPage extends StatelessWidget {
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppColors.green,
+                    foregroundColor: AppColors.textWhite,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -127,8 +120,8 @@ class RoleSelectionPage extends StatelessWidget {
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueAccent,
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppColors.primaryBlue,
+                    foregroundColor: AppColors.textWhite,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -142,7 +135,7 @@ class RoleSelectionPage extends StatelessWidget {
                 'Choose your role to continue',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.white70,
+                  color: AppColors.textSecondary,
                   fontStyle: FontStyle.italic,
                 ),
               ),

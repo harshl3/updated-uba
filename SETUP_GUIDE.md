@@ -165,3 +165,5 @@ lib/
 - The app uses Firebase Email/Password authentication
 - All data is isolated per school at multiple levels for security
 
+
+

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'role_selection_page.dart';
 import 'services/firebase_initialization_service.dart';
 import 'constants/app_constants.dart';
+import 'theme/app_colors.dart';
 
 class SchoolSelectionPage extends StatefulWidget {
   const SchoolSelectionPage({super.key});
@@ -82,7 +83,7 @@ if (kDebugMode) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to initialize school: ${e.toString()}'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.red,
           duration: AppConstants.snackbarDurationLong,
         ),
       );
@@ -106,8 +107,8 @@ if (kDebugMode) {
           style: ElevatedButton.styleFrom(
             minimumSize: const Size(double.infinity, 60),
             backgroundColor: isInitializing 
-                ? Colors.grey 
-                : Colors.blueAccent,
+                ? AppColors.textSecondary 
+                : AppColors.primaryBlue,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18),
             ),
@@ -140,25 +141,38 @@ if (kDebugMode) {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.backgroundLight,
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF4A90E2), Color(0xFF50E3C2)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
         padding: const EdgeInsets.all(20),
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                "Select Your School",
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+              Card(
+                elevation: 8,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      const Icon(
+                        Icons.school,
+                        size: 64,
+                        color: AppColors.primaryBlue,
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        "Select Your School",
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 40),

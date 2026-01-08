@@ -184,6 +184,14 @@ class AuthService {
     required String name,
     String? className,
     String? rollNumber,
+    String? fathersName,
+    String? address,
+    String? gender,
+    String? dob,
+    String? mobileNumber,
+    String? dateOfAdmission,
+    String? previousPercentage,
+    String? parentsMobileNumber,
   }) async {
     // Validate school code
     if (!AppConstants.isValidSchoolCode(schoolCode)) {
@@ -230,6 +238,16 @@ class AuthService {
         'schoolCode': schoolCode, // CRITICAL: Store school code for validation
         'className': className?.trim() ?? '',
         'rollNumber': rollNumber?.trim() ?? '',
+        // Extended fields (all optional)
+        'fathersName': fathersName?.trim() ?? '',
+        'address': address?.trim() ?? '',
+        'gender': gender?.trim() ?? '',
+        'dob': dob?.trim() ?? '',
+        'mobileNumber': mobileNumber?.trim() ?? '',
+        'dateOfAdmission': dateOfAdmission?.trim() ?? '',
+        'previousPercentage': previousPercentage?.trim() ?? '',
+        'parentsMobileNumber': parentsMobileNumber?.trim() ?? '',
+        'currentPercentage': '', // Will be updated later
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       });
