@@ -153,6 +153,7 @@ class _StudentDetailsScreenState extends State<StudentDetailsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_isEditing ? 'Edit Student Details' : 'Student Details'),
+        // Allow back navigation within app (to students list)
         actions: [
           if (!_isEditing)
             IconButton(
@@ -466,5 +467,7 @@ class _StudentDetailsScreenState extends State<StudentDetailsScreen> {
     );
   }
 }
+
+
 
 

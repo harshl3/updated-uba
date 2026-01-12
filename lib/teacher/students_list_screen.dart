@@ -4,16 +4,19 @@ import '../theme/app_colors.dart';
 import '../firestore_service.dart';
 import 'student_details_screen.dart';
 
-/// Students List Screen - Shows all registered students for the school
+/// Students List Screen - Shows registered students for the school
 /// 
 /// Teachers can view and access student details.
+/// Can be filtered by class if selectedClass is provided.
 /// All data is school-scoped and isolated.
 class StudentsListScreen extends StatefulWidget {
   final String schoolCode;
+  final String? selectedClass; // Optional: filter by class (1-12)
 
   const StudentsListScreen({
     super.key,
     required this.schoolCode,
+    this.selectedClass,
   });
 
   @override
@@ -22,33 +25,68 @@ class StudentsListScreen extends StatefulWidget {
 
 class _StudentsListScreenState extends State<StudentsListScreen> {
   String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Students'),
+        title: Text(
+          widget.selectedClass != null
+              ? 'Class ${widget.selectedClass} Students'
+              : 'Students',
+        ),
+        // Allow back navigation within app (to dashboard or class selection)
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
+              _searchController.text = _searchQuery;
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
                   title: const Text('Search Students'),
                   content: TextField(
+                    controller: _searchController,
                     autofocus: true,
                     decoration: const InputDecoration(
                       hintText: 'Enter student name or email',
                       prefixIcon: Icon(Icons.search),
                     ),
-                    onChanged: (value) {
+                    onSubmitted: (value) {
                       setState(() {
                         _searchQuery = value.toLowerCase();
                       });
                       Navigator.pop(context);
                     },
                   ),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _searchQuery = '';
+                          _searchController.clear();
+                        });
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Clear'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _searchQuery = _searchController.text.toLowerCase();
+                        });
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Search'),
+                    ),
+                  ],
                 ),
               );
             },
@@ -220,13 +258,27 @@ class _StudentsListScreenState extends State<StudentsListScreen> {
   }
 
   /// Gets the stream of students for the current school
+  /// Filters by class if selectedClass is provided
   Future<Stream<QuerySnapshot>> _getStudentsStream() async {
     final firestore = await FirestoreService.firestore(widget.schoolCode);
+    
+    // If a class is selected, filter by both schoolCode and className
+    if (widget.selectedClass != null && widget.selectedClass!.isNotEmpty) {
+      return firestore
+          .collection('students')
+          .where('schoolCode', isEqualTo: widget.schoolCode)
+          .where('className', isEqualTo: widget.selectedClass)
+          .snapshots();
+    }
+    
+    // Otherwise, just filter by schoolCode
     return firestore
         .collection('students')
         .where('schoolCode', isEqualTo: widget.schoolCode)
         .snapshots();
   }
 }
+
+
 
 

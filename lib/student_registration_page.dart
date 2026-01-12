@@ -29,8 +29,8 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
   
-  // Optional basic fields
-  final TextEditingController _classNameController = TextEditingController();
+  // Required fields - Class and Roll Number
+  String? _selectedClass; // Class dropdown value (1-12)
   final TextEditingController _rollNumberController = TextEditingController();
   
   // Extended optional fields
@@ -53,7 +53,6 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _classNameController.dispose();
     _rollNumberController.dispose();
     _fathersNameController.dispose();
     _addressController.dispose();
@@ -81,12 +80,8 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
         name: _nameController.text.trim(),
-        className: _classNameController.text.trim().isNotEmpty 
-            ? _classNameController.text.trim() 
-            : null,
-        rollNumber: _rollNumberController.text.trim().isNotEmpty 
-            ? _rollNumberController.text.trim() 
-            : null,
+        className: _selectedClass ?? '', // Required field
+        rollNumber: _rollNumberController.text.trim(), // Required field
         fathersName: _fathersNameController.text.trim().isNotEmpty 
             ? _fathersNameController.text.trim() 
             : null,
@@ -127,7 +122,6 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
       _emailController.clear();
       _passwordController.clear();
       _confirmPasswordController.clear();
-      _classNameController.clear();
       _rollNumberController.clear();
       _fathersNameController.clear();
       _addressController.clear();
@@ -138,6 +132,7 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
       _parentsMobileNumberController.clear();
       setState(() {
         _selectedGender = null;
+        _selectedClass = null;
       });
     } on AuthException catch (e) {
       if (!mounted) return;
@@ -329,6 +324,60 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
                   },
                 ),
                 
+                const SizedBox(height: 16),
+                
+                // Class Dropdown (Required)
+                DropdownButtonFormField<String>(
+                  value: _selectedClass,
+                  decoration: InputDecoration(
+                    labelText: 'Class *',
+                    hintText: 'Select class',
+                    prefixIcon: const Icon(Icons.class_),
+                    filled: true,
+                    fillColor: AppColors.cardWhite,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: AppColors.borderLight),
+                    ),
+                  ),
+                  items: List.generate(12, (index) {
+                    final classNumber = (index + 1).toString();
+                    return DropdownMenuItem(
+                      value: classNumber,
+                      child: Text('Class $classNumber'),
+                    );
+                  }),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedClass = value;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Class is required';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                
+                // Roll Number (Required)
+                _buildTextField(
+                  controller: _rollNumberController,
+                  label: 'Roll Number *',
+                  hint: 'e.g., 001',
+                  icon: Icons.numbers,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Roll number is required';
+                    }
+                    return null;
+                  },
+                ),
+                
                 const SizedBox(height: 32),
                 
                 // Optional Fields Section
@@ -341,23 +390,6 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                
-                // Class Name
-                _buildTextField(
-                  controller: _classNameController,
-                  label: 'Class Name',
-                  hint: 'e.g., Class 10-A',
-                  icon: Icons.class_,
-                ),
-                const SizedBox(height: 16),
-                
-                // Roll Number
-                _buildTextField(
-                  controller: _rollNumberController,
-                  label: 'Roll Number',
-                  hint: 'e.g., 001',
-                  icon: Icons.numbers,
-                ),
                 const SizedBox(height: 16),
                 
                 // Father's Name

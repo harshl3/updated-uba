@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../theme/app_colors.dart';
 import '../firestore_service.dart';
 import '../services/auth_service.dart';
 import '../school_selection_page.dart';
+import 'student_announcement_screen.dart';
+import 'transcript_screen.dart';
+import 'student_profile_screen.dart';
 
 /// Student Dashboard Screen
 /// 
@@ -126,12 +128,16 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
       );
     }
 
-    return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      body: SafeArea(
-        child: _getCurrentPage(),
+    // Prevent back navigation - users must logout to go back
+    return PopScope(
+      canPop: false, // Prevent back button
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundLight,
+        body: SafeArea(
+          child: _getCurrentPage(),
+        ),
+        bottomNavigationBar: _buildBottomNavigationBar(),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
@@ -362,6 +368,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                     MaterialPageRoute(
                       builder: (context) => StudentAnnouncementScreen(
                         schoolCode: widget.schoolCode,
+                        studentClass: _studentData?['className'] as String?,
                       ),
                     ),
                   );
@@ -500,7 +507,10 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
       case 0:
         return _buildHomeContent();
       case 1:
-        return _buildAttendancePage();
+        return StudentAnnouncementScreen(
+          schoolCode: widget.schoolCode,
+          studentClass: _studentData?['className'] as String?,
+        );
       case 2:
         return StudentProfileScreen(
           schoolCode: widget.schoolCode,
@@ -529,491 +539,11 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
     );
   }
 
-  /// Builds attendance page
-  Widget _buildAttendancePage() {
-    return const Center(
-      child: Text('Attendance feature coming soon!'),
-    );
-  }
 
   /// Builds more page
   Widget _buildMorePage() {
     return const Center(
       child: Text('More features coming soon!'),
-    );
-  }
-}
-
-/// Student Announcement Screen - Shows all announcements for the student's school
-class StudentAnnouncementScreen extends StatelessWidget {
-  final String schoolCode;
-
-  const StudentAnnouncementScreen({
-    super.key,
-    required this.schoolCode,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Announcements'),
-      ),
-      body: Container(
-        color: AppColors.backgroundLight,
-        child: StreamBuilder<QuerySnapshot>(
-          stream: _getAnnouncementsStream(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (snapshot.hasError) {
-              return Center(
-                child: Text('Error: ${snapshot.error}'),
-              );
-            }
-
-            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return const Center(
-                child: Text('No announcements yet.'),
-              );
-            }
-
-            final announcements = snapshot.data!.docs;
-            announcements.sort((a, b) {
-              final timestampA = (a.data() as Map<String, dynamic>)['timestamp'] as Timestamp?;
-              final timestampB = (b.data() as Map<String, dynamic>)['timestamp'] as Timestamp?;
-              if (timestampA == null || timestampB == null) return 0;
-              return timestampB.compareTo(timestampA); // Newest first
-            });
-
-            return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: announcements.length,
-              itemBuilder: (context, index) {
-                final announcement = announcements[index].data() as Map<String, dynamic>;
-                final title = announcement['title'] ?? 'No Title';
-                final message = announcement['message'] ?? 'No message';
-                final date = announcement['date'] ?? '';
-                final time = announcement['time'] ?? '';
-
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  elevation: 4,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: AppColors.orange,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: const Text(
-                                'ANNOUNCEMENT',
-                                style: TextStyle(
-                                  color: AppColors.textWhite,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          title,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        if (date.isNotEmpty || time.isNotEmpty)
-                          Row(
-                            children: [
-                              if (date.isNotEmpty) ...[
-                                const Icon(Icons.calendar_today, size: 16, color: AppColors.textSecondary),
-                                const SizedBox(width: 4),
-                                Text(
-                                  date,
-                                  style: const TextStyle(
-                                    color: AppColors.textSecondary,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                              if (date.isNotEmpty && time.isNotEmpty) const SizedBox(width: 16),
-                              if (time.isNotEmpty) ...[
-                                const Icon(Icons.access_time, size: 16, color: AppColors.textSecondary),
-                                const SizedBox(width: 4),
-                                Text(
-                                  time,
-                                  style: const TextStyle(
-                                    color: AppColors.textSecondary,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        const SizedBox(height: 12),
-                        Text(
-                          message,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  /// Gets announcements stream for the school
-  /// Note: We don't use orderBy here to avoid index requirement
-  /// Sorting is done in memory
-  Stream<QuerySnapshot> _getAnnouncementsStream() {
-    return Stream.fromFuture(
-      FirestoreService.firestore(schoolCode),
-    ).asyncExpand((firestore) {
-      return firestore
-          .collection('announcements')
-          .where('schoolCode', isEqualTo: schoolCode)
-          .snapshots();
-    });
-  }
-}
-
-/// Transcript Screen - Shows student's academic performance
-class TranscriptScreen extends StatelessWidget {
-  final String schoolCode;
-  final Map<String, dynamic> studentData;
-
-  const TranscriptScreen({
-    super.key,
-    required this.schoolCode,
-    required this.studentData,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final previousPercentage = studentData['previousPercentage'] ?? 'Not Available';
-    final currentPercentage = studentData['currentPercentage'] ?? 'Not Available';
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Academic Transcript'),
-      ),
-      body: Container(
-        color: AppColors.backgroundLight,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header Card
-              Card(
-                elevation: 4,
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      CircleAvatar(
-                        radius: 40,
-                        backgroundColor: AppColors.primaryBlue,
-                        child: Text(
-                          (studentData['name'] ?? 'S').substring(0, 1).toUpperCase(),
-                          style: const TextStyle(
-                            color: AppColors.textWhite,
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        studentData['name'] ?? 'Student',
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'School $schoolCode',
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              
-              // Previous Percentage Card
-              Card(
-                elevation: 4,
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Row(
-                        children: [
-                          Icon(Icons.history, color: AppColors.primaryBlue),
-                          SizedBox(width: 8),
-                          Text(
-                            'Previous Percentage',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        previousPercentage == 'Not Available' 
-                            ? previousPercentage 
-                            : '$previousPercentage%',
-                        style: TextStyle(
-                          fontSize: 48,
-                          fontWeight: FontWeight.bold,
-                          color: previousPercentage == 'Not Available' 
-                              ? AppColors.textSecondary 
-                              : AppColors.primaryBlue,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              
-              // Current Percentage Card
-              Card(
-                elevation: 4,
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Row(
-                        children: [
-                          Icon(Icons.trending_up, color: AppColors.green),
-                          SizedBox(width: 8),
-                          Text(
-                            'Current Percentage',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        currentPercentage == 'Not Available' 
-                            ? currentPercentage 
-                            : '$currentPercentage%',
-                        style: TextStyle(
-                          fontSize: 48,
-                          fontWeight: FontWeight.bold,
-                          color: currentPercentage == 'Not Available' 
-                              ? AppColors.textSecondary 
-                              : AppColors.green,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Student Profile Screen - Shows student's personal details
-class StudentProfileScreen extends StatelessWidget {
-  final String schoolCode;
-  final String userId;
-  final Map<String, dynamic> studentData;
-
-  const StudentProfileScreen({
-    super.key,
-    required this.schoolCode,
-    required this.userId,
-    required this.studentData,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-      ),
-      body: Container(
-        color: AppColors.backgroundLight,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              // Profile Header
-              Card(
-                elevation: 4,
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundColor: AppColors.primaryBlue,
-                        child: Text(
-                          (studentData['name'] ?? 'S').substring(0, 1).toUpperCase(),
-                          style: const TextStyle(
-                            color: AppColors.textWhite,
-                            fontSize: 48,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        studentData['name'] ?? 'Student',
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        studentData['email'] ?? 'No Email',
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              
-              // Personal Information
-              _buildSectionCard(
-                title: 'Personal Information',
-                children: [
-                  _buildInfoRow('Name', studentData['name'] ?? 'Not specified'),
-                  _buildInfoRow('Email', studentData['email'] ?? 'Not specified'),
-                  _buildInfoRow('Gender', studentData['gender'] ?? 'Not specified'),
-                  _buildInfoRow('Date of Birth', studentData['dob'] ?? 'Not specified'),
-                  _buildInfoRow('Mobile Number', studentData['mobileNumber'] ?? 'Not specified'),
-                  _buildInfoRow('Address', studentData['address'] ?? 'Not specified'),
-                ],
-              ),
-              
-              // Academic Information
-              _buildSectionCard(
-                title: 'Academic Information',
-                children: [
-                  _buildInfoRow('Class', studentData['className'] ?? 'Not specified'),
-                  _buildInfoRow('Roll Number', studentData['rollNumber'] ?? 'Not specified'),
-                  _buildInfoRow('Date of Admission', studentData['dateOfAdmission'] ?? 'Not specified'),
-                  _buildInfoRow('Previous Percentage', 
-                      studentData['previousPercentage'] != null && studentData['previousPercentage'].toString().isNotEmpty
-                          ? '${studentData['previousPercentage']}%'
-                          : 'Not specified'),
-                  _buildInfoRow('Current Percentage', 
-                      studentData['currentPercentage'] != null && studentData['currentPercentage'].toString().isNotEmpty
-                          ? '${studentData['currentPercentage']}%'
-                          : 'Not specified'),
-                ],
-              ),
-              
-              // Contact Information
-              _buildSectionCard(
-                title: 'Contact Information',
-                children: [
-                  _buildInfoRow("Father's Name", studentData['fathersName'] ?? 'Not specified'),
-                  _buildInfoRow("Parent's Mobile", studentData['parentsMobileNumber'] ?? 'Not specified'),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionCard({required String title, required List<Widget> children}) {
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.primaryBlue,
-              ),
-            ),
-            const SizedBox(height: 12),
-            ...children,
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 140,
-            child: Text(
-              '$label:',
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontSize: 16,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

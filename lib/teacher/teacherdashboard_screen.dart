@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:uba/teacher/students_list_screen.dart';
 import '../theme/app_colors.dart';
 import '../firestore_service.dart';
 import '../services/auth_service.dart';
 import '../school_selection_page.dart';
 import '../student_registration_page.dart';
-import 'students_list_screen.dart';
 import 'announcement_screen.dart';
+import 'class_selection_screen.dart';
 
 /// Teacher Dashboard Screen
 /// 
@@ -129,30 +130,35 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
       );
     }
 
-    return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      appBar: AppBar(
-        title: const Text('Teacher Dashboard'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-              // TODO: Implement notifications
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Notifications coming soon!')),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _handleLogout,
-          ),
-        ],
+    // Prevent back navigation - users must logout to go back
+    return PopScope(
+      canPop: false, // Prevent back button
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundLight,
+        appBar: AppBar(
+          title: const Text('Teacher Dashboard'),
+          automaticallyImplyLeading: false, // Remove back button
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.notifications_outlined),
+              onPressed: () {
+                // TODO: Implement notifications
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Notifications coming soon!')),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: _handleLogout,
+            ),
+          ],
+        ),
+        body: SafeArea(
+          child: _getCurrentPage(),
+        ),
+        bottomNavigationBar: _buildBottomNavigationBar(),
       ),
-      body: SafeArea(
-        child: _getCurrentPage(),
-      ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
@@ -335,7 +341,10 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
       case 0:
         return _buildHomePage();
       case 1:
-        return StudentsListScreen(schoolCode: widget.schoolCode);
+        return StudentsListScreen(
+                          schoolCode: widget.schoolCode,
+                          selectedClass: null, // null means all students
+                        );
       case 2:
         return _buildProfilePage();
       case 3:
@@ -398,9 +407,14 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
                 label: 'Student Details',
                 imagePath: 'assets/dashboard/studentdetails.png',
                 onTap: () {
-                  // TODO: Navigate to student details management
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Student Details coming soon!')),
+                  // Navigate to class selection screen
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ClassSelectionScreen(
+                        schoolCode: widget.schoolCode,
+                      ),
+                    ),
                   );
                 },
               ),

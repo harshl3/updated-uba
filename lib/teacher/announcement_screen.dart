@@ -4,17 +4,14 @@ import '../theme/app_colors.dart';
 import '../firestore_service.dart';
 
 /// Announcement Screen - For teachers to create and manage announcements
-/// 
+///
 /// Teachers can create announcements with date and time.
 /// Announcements are visible only to students of the same school.
 /// All data is school-scoped and isolated.
 class AnnouncementScreen extends StatefulWidget {
   final String schoolCode;
 
-  const AnnouncementScreen({
-    super.key,
-    required this.schoolCode,
-  });
+  const AnnouncementScreen({super.key, required this.schoolCode});
 
   @override
   State<AnnouncementScreen> createState() => _AnnouncementScreenState();
@@ -25,8 +22,9 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
   final TextEditingController _messageController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
-  
+
   bool _isLoading = false;
+  String? _selectedClass; // Class dropdown value (1-12 or "all")
 
   @override
   void dispose() {
@@ -57,17 +55,22 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
       initialTime: TimeOfDay.now(),
     );
     if (picked != null) {
-      _timeController.text = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+      _timeController.text =
+          '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
     }
   }
 
   /// Creates a new announcement
   Future<void> _createAnnouncement() async {
-    if (_titleController.text.trim().isEmpty || 
-        _messageController.text.trim().isEmpty) {
+    if (_titleController.text.trim().isEmpty ||
+        _messageController.text.trim().isEmpty ||
+        _selectedClass == null ||
+        _selectedClass!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please fill in title and message'),
+          content: Text(
+            'Please fill in all required fields (title, message, and target class)',
+          ),
           backgroundColor: AppColors.red,
         ),
       );
@@ -80,13 +83,13 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
 
     try {
       final firestore = await FirestoreService.firestore(widget.schoolCode);
-      
+
       final now = DateTime.now();
-      final date = _dateController.text.trim().isNotEmpty 
-          ? _dateController.text.trim() 
+      final date = _dateController.text.trim().isNotEmpty
+          ? _dateController.text.trim()
           : '${now.day}/${now.month}/${now.year}';
-      final time = _timeController.text.trim().isNotEmpty 
-          ? _timeController.text.trim() 
+      final time = _timeController.text.trim().isNotEmpty
+          ? _timeController.text.trim()
           : '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
 
       await firestore.collection('announcements').add({
@@ -95,6 +98,8 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
         'date': date,
         'time': time,
         'schoolCode': widget.schoolCode, // CRITICAL: School isolation
+        'targetClass':
+            _selectedClass ?? 'all', // Class filter: 'all' or '1'-'12'
         'createdAt': FieldValue.serverTimestamp(),
         'timestamp': Timestamp.now(), // For sorting
       });
@@ -109,6 +114,7 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
 
       setState(() {
         _isLoading = false;
+        _selectedClass = null;
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -136,6 +142,7 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Announcements'),
+        // Allow back navigation within app (to dashboard)
       ),
       body: Container(
         color: AppColors.backgroundLight,
@@ -185,6 +192,44 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                               ),
                             ),
                             const SizedBox(height: 16),
+
+                            // Class Selection Dropdown
+                            DropdownButtonFormField<String>(
+                              value: _selectedClass,
+                              decoration: const InputDecoration(
+                                labelText: 'Target Class *',
+                                hintText: 'Select target class',
+                                prefixIcon: Icon(Icons.class_),
+                                filled: true,
+                                fillColor: AppColors.cardWhite,
+                              ),
+                              items: [
+                                const DropdownMenuItem(
+                                  value: 'all',
+                                  child: Text('For All Students'),
+                                ),
+                                ...List.generate(12, (index) {
+                                  final classNumber = (index + 1).toString();
+                                  return DropdownMenuItem(
+                                    value: classNumber,
+                                    child: Text('Class $classNumber'),
+                                  );
+                                }),
+                              ],
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedClass = value;
+                                });
+                              },
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please select target class';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+
                             Row(
                               children: [
                                 Expanded(
@@ -223,7 +268,9 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                               width: double.infinity,
                               height: 50,
                               child: ElevatedButton(
-                                onPressed: _isLoading ? null : _createAnnouncement,
+                                onPressed: _isLoading
+                                    ? null
+                                    : _createAnnouncement,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.primaryBlue,
                                   foregroundColor: AppColors.textWhite,
@@ -244,7 +291,7 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    
+
                     // Existing Announcements
                     const Text(
                       'Recent Announcements',
@@ -275,21 +322,19 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
         }
 
         if (snapshot.hasError) {
-          return Center(
-            child: Text('Error: ${snapshot.error}'),
-          );
+          return Center(child: Text('Error: ${snapshot.error}'));
         }
 
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Center(
-            child: Text('No announcements yet.'),
-          );
+          return const Center(child: Text('No announcements yet.'));
         }
 
         final announcements = snapshot.data!.docs;
         announcements.sort((a, b) {
-          final timestampA = (a.data() as Map<String, dynamic>)['timestamp'] as Timestamp?;
-          final timestampB = (b.data() as Map<String, dynamic>)['timestamp'] as Timestamp?;
+          final timestampA =
+              (a.data() as Map<String, dynamic>)['timestamp'] as Timestamp?;
+          final timestampB =
+              (b.data() as Map<String, dynamic>)['timestamp'] as Timestamp?;
           if (timestampA == null || timestampB == null) return 0;
           return timestampB.compareTo(timestampA); // Newest first
         });
@@ -299,7 +344,8 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
           physics: const NeverScrollableScrollPhysics(),
           itemCount: announcements.length,
           itemBuilder: (context, index) {
-            final announcement = announcements[index].data() as Map<String, dynamic>;
+            final announcement =
+                announcements[index].data() as Map<String, dynamic>;
             final announcementId = announcements[index].id;
 
             return Card(
@@ -307,7 +353,7 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
               child: ListTile(
                 title: Text(
                   announcement['title'] ?? 'No Title',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontWeight: FontWeight.bold,fontSize: 18,),
                 ),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -315,8 +361,24 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                     const SizedBox(height: 4),
                     Text(announcement['message'] ?? ''),
                     const SizedBox(height: 8),
-                    Row(
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                   child:  Row(
                       children: [
+                        if (announcement['targetClass'] != null)
+                          Chip(
+                            label: Text(
+                              announcement['targetClass'] == 'all'
+                                  ? 'All Students'
+                                  : 'Class ${announcement['targetClass']}',
+                            ),
+                            avatar: const Icon(Icons.class_, size: 16),
+                            backgroundColor: AppColors.primaryBlue.withValues(
+                              alpha: 0.2,
+                            ),
+                          ),
+                        const SizedBox(width: 8),
                         if (announcement['date'] != null)
                           Chip(
                             label: Text(announcement['date']),
@@ -330,6 +392,7 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                           ),
                       ],
                     ),
+                ),
                   ],
                 ),
                 trailing: IconButton(
@@ -364,7 +427,9 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Announcement'),
-        content: const Text('Are you sure you want to delete this announcement?'),
+        content: const Text(
+          'Are you sure you want to delete this announcement?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -381,8 +446,11 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
     if (confirm == true) {
       try {
         final firestore = await FirestoreService.firestore(widget.schoolCode);
-        await firestore.collection('announcements').doc(announcementId).delete();
-        
+        await firestore
+            .collection('announcements')
+            .doc(announcementId)
+            .delete();
+
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -402,4 +470,3 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
     }
   }
 }
-

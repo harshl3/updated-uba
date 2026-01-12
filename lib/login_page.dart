@@ -68,8 +68,9 @@ class _LoginPageState extends State<LoginPage> {
       final user = userCredential.user;
       if (user != null) {
         // Login successful - navigate to appropriate dashboard based on role
+        // Use pushAndRemoveUntil to prevent back navigation to login
         if (widget.role == AppConstants.roleTeacher) {
-          Navigator.pushReplacement(
+          Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
               builder: (context) => TeacherDashboardScreen(
@@ -78,9 +79,10 @@ class _LoginPageState extends State<LoginPage> {
                 userId: user.uid,
               ),
             ),
+            (route) => false, // Remove all previous routes
           );
         } else {
-          Navigator.pushReplacement(
+          Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
               builder: (context) => StudentDashboardScreen(
@@ -89,6 +91,7 @@ class _LoginPageState extends State<LoginPage> {
                 userId: user.uid,
               ),
             ),
+            (route) => false, // Remove all previous routes
           );
         }
       } else {
@@ -146,16 +149,11 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text("${widget.role.toUpperCase()} Login"),
+        // Allow back navigation to role selection (not prevented here)
       ),
       body: Container(
         padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF4A90E2), Color(0xFF50E3C2)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
+        color: AppColors.backgroundLight,
         child: Center(
           child: SingleChildScrollView(
             child: Form(
@@ -176,7 +174,7 @@ class _LoginPageState extends State<LoginPage> {
                           Icon(
                             isTeacher ? Icons.school : Icons.person,
                             size: 48,
-                            color: Colors.blueAccent,
+                            color: AppColors.primaryBlue,
                           ),
                           const SizedBox(height: 8),
                           Text(
@@ -184,7 +182,7 @@ class _LoginPageState extends State<LoginPage> {
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: Colors.blueAccent,
+                              color: AppColors.primaryBlue,
                             ),
                           ),
                           if (isTeacher) ...[
@@ -193,7 +191,7 @@ class _LoginPageState extends State<LoginPage> {
                               'Fixed Credentials',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.grey,
+                                color: AppColors.textSecondary,
                                 fontStyle: FontStyle.italic,
                               ),
                             ),
@@ -214,13 +212,13 @@ class _LoginPageState extends State<LoginPage> {
                           : "Enter your email",
                       prefixIcon: const Icon(Icons.email),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: AppColors.cardWhite,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.grey),
+                        borderSide: const BorderSide(color: AppColors.borderLight),
                       ),
                     ),
                     validator: (value) {
@@ -254,13 +252,13 @@ class _LoginPageState extends State<LoginPage> {
                         },
                       ),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: AppColors.cardWhite,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.grey),
+                        borderSide: const BorderSide(color: AppColors.borderLight),
                       ),
                     ),
                     validator: (value) {
@@ -280,14 +278,14 @@ class _LoginPageState extends State<LoginPage> {
                     height: 50,
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _handleLogin,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blueAccent,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 4,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryBlue,
+                      foregroundColor: AppColors.textWhite,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
+                      elevation: 4,
+                    ),
                       child: _isLoading
                           ? const SizedBox(
                               height: 20,
@@ -308,15 +306,15 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   if (isTeacher) ...[
                     const SizedBox(height: 16),
-                    const Text(
-                      'Note: Teacher accounts use fixed credentials.\nNo signup is allowed.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.white70,
-                        fontStyle: FontStyle.italic,
+                      const Text(
+                        'Note: Teacher accounts use fixed credentials.\nNo signup is allowed.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                          fontStyle: FontStyle.italic,
+                        ),
                       ),
-                    ),
                   ],
                 ],
               ),
