@@ -6,6 +6,7 @@ import '../school_selection_page.dart';
 import 'student_announcement_screen.dart';
 import 'transcript_screen.dart';
 import 'student_profile_screen.dart';
+import '../common/more_menu_page.dart';
 
 /// Student Dashboard Screen
 /// 
@@ -268,33 +269,33 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
             ),
           ),
           // View Full Transcript Button
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => TranscriptScreen(
-                    schoolCode: widget.schoolCode,
-                    studentData: _studentData ?? {},
-                  ),
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.cardWhite,
-              foregroundColor: AppColors.purpleDark,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-            child: const Text(
-              'View Full\nTranscript',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
+          // ElevatedButton(
+          //   onPressed: () {
+          //     Navigator.push(
+          //       context,
+          //       MaterialPageRoute(
+          //         builder: (context) => TranscriptScreen(
+          //           schoolCode: widget.schoolCode,
+          //           studentData: _studentData ?? {},
+          //         ),
+          //       ),
+          //     );
+          //   },
+          //   style: ElevatedButton.styleFrom(
+          //     backgroundColor: AppColors.cardWhite,
+          //     foregroundColor: AppColors.purpleDark,
+          //     elevation: 0,
+          //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          //   ),
+          //   child: const Text(
+          //     'View Full\nTranscript',
+          //     textAlign: TextAlign.center,
+          //     style: TextStyle(
+          //       fontSize: 12,
+          //       fontWeight: FontWeight.bold,
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );
@@ -330,9 +331,15 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                 label: 'Student Details',
                 imagePath: 'assets/dashboard/studentdetails.png',
                 onTap: () {
-                  // TODO: Navigate to student details
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Student Details coming soon!')),
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => StudentProfileScreen(
+                        schoolCode: widget.schoolCode,
+                        userId: widget.userId,
+                        studentData: _studentData ?? {},
+                      )
+                    ),
                   );
                 },
               ),
@@ -376,23 +383,23 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
               ),
               _buildDashboardCard(
                 icon: Icons.business,
-                label: 'YOJINAA',
-                imagePath: 'assets/dashboard/yojnaa.png',
+                label: 'Results',
+                imagePath: 'assets/dashboard/results.png',
                 onTap: () {
-                  // TODO: Navigate to YOJINAA
+                  // TODO: Navigate to Results
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('YOJINAA coming soon!')),
+                    const SnackBar(content: Text('Results coming soon!')),
                   );
                 },
               ),
               _buildDashboardCard(
                 icon: Icons.app_registration,
-                label: 'Registration',
-                imagePath: 'assets/dashboard/register.png',
+                label: 'SVPCET Updates',
+                imagePath: 'assets/dashboard/studentresult.png',
                 onTap: () {
-                  // TODO: Navigate to registration
+                  // TODO: Navigate to SVPCET Updates
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Registration coming soon!')),
+                    const SnackBar(content: Text('updates coming soon!')),
                   );
                 },
               ),
@@ -485,8 +492,8 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: 'Attendance',
+            icon: Icon(Icons.announcement),
+            label: 'Announcements',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
@@ -518,7 +525,10 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
           studentData: _studentData ?? {},
         );
       case 3:
-        return _buildMorePage();
+        return MoreMenuPage(
+          roleLabel: 'Student',
+          onLogout: _handleLogout,
+        );
       default:
         return _buildHomeContent();
     }
@@ -540,11 +550,6 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   }
 
 
-  /// Builds more page
-  Widget _buildMorePage() {
-    return const Center(
-      child: Text('More features coming soon!'),
-    );
-  }
+  // NOTE: More page is now shared via `MoreMenuPage` (About Us / Contact Us / Logout).
 }
 

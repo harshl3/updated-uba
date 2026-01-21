@@ -7,6 +7,7 @@ import '../school_selection_page.dart';
 import '../student_registration_page.dart';
 import 'announcement_screen.dart';
 import 'class_selection_screen.dart';
+import '../common/more_menu_page.dart';
 
 /// Teacher Dashboard Screen
 /// 
@@ -147,10 +148,6 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
                   const SnackBar(content: Text('Notifications coming soon!')),
                 );
               },
-            ),
-            IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: _handleLogout,
             ),
           ],
         ),
@@ -348,7 +345,10 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
       case 2:
         return _buildProfilePage();
       case 3:
-        return _buildMorePage();
+        return MoreMenuPage(
+          roleLabel: 'Teacher',
+          onLogout: _handleLogout,
+        );
       default:
         return _buildHomePage();
     }
@@ -468,8 +468,8 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
               ),
               _buildDashboardCard(
                 icon: Icons.history,
-                label: 'History',
-                imagePath: 'assets/dashboard/history.png',
+                label: 'SVPCET Updates',
+                imagePath: 'assets/dashboard/updates.png',
                 onTap: () {
                   // TODO: Navigate to history
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -570,8 +570,8 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
             label: 'Students',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
+            icon: Icon(Icons.assessment),
+            label: 'Attendance',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.more_horiz),
@@ -591,8 +591,8 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.person, size: 48),
-              title: const Text('Teacher Profile'),
-              subtitle: Text(widget.email),
+              title: const Text('Attendance here'),
+              subtitle: Text(''),
             ),
           ),
         ],
@@ -600,27 +600,6 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
     );
   }
 
-  /// Builds more page
-  Widget _buildMorePage() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Settings'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Settings coming soon!')),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // NOTE: More page is now shared via `MoreMenuPage` (About Us / Contact Us / Logout).
 }
 

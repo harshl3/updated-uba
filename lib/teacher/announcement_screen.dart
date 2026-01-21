@@ -350,54 +350,72 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
 
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
-              child: ListTile(
-                title: Text(
-                  announcement['title'] ?? 'No Title',
-                  style: const TextStyle(fontWeight: FontWeight.bold,fontSize: 18,),
-                ),
-                subtitle: Column(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 4),
-                    Text(announcement['message'] ?? ''),
-                    const SizedBox(height: 8),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                   child:  Row(
-                      children: [
-                        if (announcement['targetClass'] != null)
-                          Chip(
-                            label: Text(
-                              announcement['targetClass'] == 'all'
-                                  ? 'All Students'
-                                  : 'Class ${announcement['targetClass']}',
-                            ),
-                            avatar: const Icon(Icons.class_, size: 16),
-                            backgroundColor: AppColors.primaryBlue.withValues(
-                              alpha: 0.2,
-                            ),
-                          ),
-                        const SizedBox(width: 8),
-                        if (announcement['date'] != null)
-                          Chip(
-                            label: Text(announcement['date']),
-                            avatar: const Icon(Icons.calendar_today, size: 16),
-                          ),
-                        const SizedBox(width: 8),
-                        if (announcement['time'] != null)
-                          Chip(
-                            label: Text(announcement['time']),
-                            avatar: const Icon(Icons.access_time, size: 16),
-                          ),
-                      ],
+                    Text(
+                      announcement['title'] ?? 'No Title',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
                     ),
-                ),
+                    const SizedBox(height: 6),
+                    Text(announcement['message'] ?? ''),
+                    const SizedBox(height: 10),
+
+                    // Date/Time/TargetClass chips
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      child: Row(
+                        children: [
+                          if (announcement['targetClass'] != null)
+                            Chip(
+                              label: Text(
+                                announcement['targetClass'] == 'all'
+                                    ? 'All Students'
+                                    : 'Class ${announcement['targetClass']}',
+                              ),
+                              avatar: const Icon(Icons.class_, size: 16),
+                              backgroundColor: AppColors.primaryBlue.withValues(
+                                alpha: 0.2,
+                              ),
+                            ),
+                          const SizedBox(width: 8),
+                          if (announcement['date'] != null)
+                            Chip(
+                              label: Text(announcement['date']),
+                              avatar: const Icon(Icons.calendar_today, size: 16),
+                            ),
+                          const SizedBox(width: 8),
+                          if (announcement['time'] != null)
+                            Chip(
+                              label: Text(announcement['time']),
+                              avatar: const Icon(Icons.access_time, size: 16),
+                            ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // DELETE button (below chips) - delete logic unchanged
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: OutlinedButton.icon(
+                        onPressed: () => _deleteAnnouncement(announcementId),
+                        icon: const Icon(Icons.delete_outline),
+                        label: const Text('Delete'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.red,
+                          side: const BorderSide(color: AppColors.red),
+                        ),
+                      ),
+                    ),
                   ],
-                ),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete, color: AppColors.red),
-                  onPressed: () => _deleteAnnouncement(announcementId),
                 ),
               ),
             );
