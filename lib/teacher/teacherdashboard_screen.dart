@@ -8,16 +8,18 @@ import '../student_registration_page.dart';
 import 'announcement_screen.dart';
 import 'class_selection_screen.dart';
 import '../common/more_menu_page.dart';
+import 'attendance_screen.dart';
+import 'attendance_report_screen.dart';
 
 /// Teacher Dashboard Screen
-/// 
+///
 /// Main dashboard for teachers showing:
 /// - Welcome card with school info
 /// - Quick stats (total students, etc.)
 /// - Student registration button
 /// - List of registered students
 /// - Quick access to various features
-/// 
+///
 /// All data is school-scoped and isolated per school.
 class TeacherDashboardScreen extends StatefulWidget {
   final String schoolCode;
@@ -103,9 +105,7 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
 
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(
-            builder: (context) => const SchoolSelectionPage(),
-          ),
+          MaterialPageRoute(builder: (context) => const SchoolSelectionPage()),
           (route) => false,
         );
       } catch (e) {
@@ -125,9 +125,7 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
     if (_isLoading) {
       return Scaffold(
         backgroundColor: AppColors.backgroundLight,
-        body: const Center(
-          child: CircularProgressIndicator(),
-        ),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -151,9 +149,7 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
             ),
           ],
         ),
-        body: SafeArea(
-          child: _getCurrentPage(),
-        ),
+        body: SafeArea(child: _getCurrentPage()),
         bottomNavigationBar: _buildBottomNavigationBar(),
       ),
     );
@@ -180,11 +176,7 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
         children: [
           Row(
             children: [
-              const Icon(
-                Icons.school,
-                size: 32,
-                color: AppColors.textWhite,
-              ),
+              const Icon(Icons.school, size: 32, color: AppColors.textWhite),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -215,10 +207,7 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
           const SizedBox(height: 12),
           Text(
             widget.email,
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.textWhite,
-            ),
+            style: const TextStyle(fontSize: 14, color: AppColors.textWhite),
           ),
         ],
       ),
@@ -283,10 +272,7 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
         const SizedBox(height: 4),
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 12,
-            color: AppColors.textSecondary,
-          ),
+          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
         ),
       ],
     );
@@ -303,9 +289,8 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => StudentRegistrationPage(
-                schoolCode: widget.schoolCode,
-              ),
+              builder: (context) =>
+                  StudentRegistrationPage(schoolCode: widget.schoolCode),
             ),
           ).then((_) {
             // Refresh data after registration
@@ -315,10 +300,7 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
         icon: const Icon(Icons.person_add, size: 24),
         label: const Text(
           'Register New Student',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.green,
@@ -339,16 +321,13 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
         return _buildHomePage();
       case 1:
         return StudentsListScreen(
-                          schoolCode: widget.schoolCode,
-                          selectedClass: null, // null means all students
-                        );
-      case 2:
-        return _buildProfilePage();
-      case 3:
-        return MoreMenuPage(
-          roleLabel: 'Teacher',
-          onLogout: _handleLogout,
+          schoolCode: widget.schoolCode,
+          selectedClass: null, // null means all students
         );
+      case 2:
+        return AttendanceScreen(schoolCode: widget.schoolCode);
+      case 3:
+        return MoreMenuPage(roleLabel: 'Teacher', onLogout: _handleLogout);
       default:
         return _buildHomePage();
     }
@@ -362,16 +341,16 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
         children: [
           // Welcome Card
           _buildWelcomeCard(),
-          
+
           // Quick Stats Card
           _buildStatsCard(),
-          
+
           // Register Student Button
           _buildRegisterButton(),
-          
+
           // Teacher Dashboard Grid
           _buildDashboardGrid(),
-          
+
           const SizedBox(height: 20),
         ],
       ),
@@ -411,9 +390,8 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ClassSelectionScreen(
-                        schoolCode: widget.schoolCode,
-                      ),
+                      builder: (context) =>
+                          ClassSelectionScreen(schoolCode: widget.schoolCode),
                     ),
                   );
                 },
@@ -423,9 +401,12 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
                 label: 'Attendance',
                 imagePath: 'assets/dashboard/attendance.jpg',
                 onTap: () {
-                  // TODO: Navigate to attendance management
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Attendance management coming soon!')),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          AttendanceScreen(schoolCode: widget.schoolCode),
+                    ),
                   );
                 },
               ),
@@ -436,7 +417,9 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
                 onTap: () {
                   // TODO: Navigate to study material upload
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Study Material coming soon!')),
+                    const SnackBar(
+                      content: Text('Study Material coming soon!'),
+                    ),
                   );
                 },
               ),
@@ -448,9 +431,8 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => AnnouncementScreen(
-                        schoolCode: widget.schoolCode,
-                      ),
+                      builder: (context) =>
+                          AnnouncementScreen(schoolCode: widget.schoolCode),
                     ),
                   );
                 },
@@ -462,7 +444,23 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
                 onTap: () {
                   // TODO: Navigate to results management
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Results management coming soon!')),
+                    const SnackBar(
+                      content: Text('Results management coming soon!'),
+                    ),
+                  );
+                },
+              ),
+              _buildDashboardCard(
+                icon: Icons.file_download,
+                label: 'Attendance Report',
+                imagePath: 'assets/dashboard/attendance_report.png',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          AttendanceReportScreen(schoolCode: widget.schoolCode),
+                    ),
                   );
                 },
               ),
@@ -514,11 +512,7 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
               width: 48,
               height: 48,
               errorBuilder: (context, error, stackTrace) {
-                return Icon(
-                  icon,
-                  size: 48,
-                  color: AppColors.primaryBlue,
-                );
+                return Icon(icon, size: 48, color: AppColors.primaryBlue);
               },
             ),
             const SizedBox(height: 12),
@@ -561,40 +555,13 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
         selectedItemColor: AppColors.primaryBlue,
         unselectedItemColor: AppColors.textSecondary,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people),
-            label: 'Students',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Students'),
           BottomNavigationBarItem(
             icon: Icon(Icons.assessment),
             label: 'Attendance',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.more_horiz),
-            label: 'More',
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Builds profile page
-  Widget _buildProfilePage() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.person, size: 48),
-              title: const Text('Attendance here'),
-              subtitle: Text(''),
-            ),
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'More'),
         ],
       ),
     );
@@ -602,4 +569,3 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
 
   // NOTE: More page is now shared via `MoreMenuPage` (About Us / Contact Us / Logout).
 }
-
