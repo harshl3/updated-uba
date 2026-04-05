@@ -49,17 +49,24 @@ class AboutUsScreen extends StatelessWidget {
             const SizedBox(height: 20),
             buildCard(
               'MEET OUR TEAM',
-              'Mentored by: Dr. Manoj Bramhe \n\nGuided by: Dr. Priti Uparkar \n\nDeveloped by: ',
+              'Mentored by: Dr. Priti Uparkar  \n\nDeveloped by: ',
               const Color.fromARGB(255, 120, 31, 136),
               '',
               teamMembers: [
                 TeamMember('1.Archit Kanadkhedkar'),
-                TeamMember('2.Prasad Mankar'),
-                TeamMember('3.Harshal Mendhule'),
-                TeamMember('4.Gauri Thakre'),
-                TeamMember('5.Anshu Bongade'),
-                TeamMember('6.Divyanshu Nikhare')
+                // TeamMember('2.Prasad Mankar'),
+                TeamMember('2.Harshal Mendhule'),
+                TeamMember('3.Gauri Thakre'),
+                TeamMember('4.Anshu Bongade'),
+                TeamMember('5.Divyanshu Nikhare')
               ],
+            ),
+            const SizedBox(height: 20),
+            Image.asset(
+              'assets/drawer/test1.png', // Replace with your image asset path
+              fit: BoxFit.cover, // Adjust the fit as needed
+              height: 350, // Set the height as needed
+              width: double.infinity, // Occupy full width
             ),
           ],
         ),
