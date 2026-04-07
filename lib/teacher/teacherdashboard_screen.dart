@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:uba/teacher/students_list_screen.dart';
+import 'package:vidya_sathi/teacher/students_list_screen.dart';
 import '../theme/app_colors.dart';
 import '../firestore_service.dart';
 import '../services/auth_service.dart';
