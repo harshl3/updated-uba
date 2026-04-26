@@ -4,8 +4,8 @@ import '../firestore_service.dart';
 import '../services/auth_service.dart';
 import '../school_selection_page.dart';
 import 'student_announcement_screen.dart';
-import 'transcript_screen.dart';
 import 'student_profile_screen.dart';
+import 'student_svpcet_updates_screen.dart';
 import '../common/more_menu_page.dart';
 
 /// Student Dashboard Screen
@@ -331,14 +331,14 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                 label: 'Student Details',
                 imagePath: 'assets/dashboard/studentdetails.png',
                 onTap: () {
-                  Navigator.pushReplacement(
+                  Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => StudentProfileScreen(
                         schoolCode: widget.schoolCode,
                         userId: widget.userId,
                         studentData: _studentData ?? {},
-                      )
+                      ),
                     ),
                   );
                 },
@@ -397,9 +397,13 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                 label: 'SVPCET Updates',
                 imagePath: 'assets/dashboard/studentresult.png',
                 onTap: () {
-                  // TODO: Navigate to SVPCET Updates
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('updates coming soon!')),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => StudentSvpcetUpdatesScreen(
+                        schoolCode: widget.schoolCode,
+                      ),
+                    ),
                   );
                 },
               ),

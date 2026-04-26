@@ -61,6 +61,14 @@ class MoreMenuPage extends StatelessWidget {
           ),
           _buildMenuCard(
             context,
+            title: 'Privacy Policy',
+            subtitle: 'View app privacy policy in browser',
+            icon: Icons.privacy_tip_outlined,
+            iconColor: AppColors.orange,
+            onTap: () => _showPrivacyPolicyRedirectDialog(context),
+          ),
+          _buildMenuCard(
+            context,
             title: 'Logout',
             subtitle: 'Sign out of your account',
             icon: Icons.logout,
@@ -176,6 +184,45 @@ class MoreMenuPage extends StatelessWidget {
         trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
       ),
     );
+  }
+
+  Future<void> _showPrivacyPolicyRedirectDialog(BuildContext context) async {
+    final shouldOpen = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Open Privacy Policy'),
+          content: const Text(
+            'This will redirect you to your browser to view the Privacy Policy.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Continue'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldOpen != true || !context.mounted) return;
+
+    final uri = Uri.parse('https://sites.google.com/view/vidyasathi/home');
+    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+
+    if (!context.mounted) return;
+    if (!opened) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not open Privacy Policy link.'),
+          backgroundColor: AppColors.red,
+        ),
+      );
+    }
   }
 
   // /// Small helper hint: if URL launcher fails on some platforms, we still allow copy.

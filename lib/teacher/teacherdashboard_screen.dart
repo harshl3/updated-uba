@@ -10,6 +10,7 @@ import 'class_selection_screen.dart';
 import '../common/more_menu_page.dart';
 import 'attendance_screen.dart';
 import 'attendance_report_screen.dart';
+import 'svpcet_updates_screen.dart';
 
 /// Teacher Dashboard Screen
 ///
@@ -469,9 +470,12 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
                 label: 'SVPCET Updates',
                 imagePath: 'assets/dashboard/updates.png',
                 onTap: () {
-                  // TODO: Navigate to history
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('History coming soon!')),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          SvpcetUpdatesScreen(schoolCode: widget.schoolCode),
+                    ),
                   );
                 },
               ),
