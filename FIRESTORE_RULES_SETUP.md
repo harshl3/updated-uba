@@ -83,6 +83,7 @@ The `firestore.rules` file has been created in your project root. You need to de
 - ✅ `attendance_records` - Individual attendance records
 - ✅ `attendance_sessions` - Class attendance summaries
 - ✅ `announcements` - School announcements
+- ✅ `svpcet_updates` - SVPCET updates and news
 
 ## 🧪 Testing the Rules
 

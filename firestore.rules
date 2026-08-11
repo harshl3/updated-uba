@@ -110,5 +110,24 @@ service cloud.firestore {
       // Allow delete if user is authenticated (teacher)
       allow delete: if isAuthenticated();
     }
+    
+    // ============================================
+    // SVPCET_UPDATES COLLECTION
+    // ============================================
+    match /svpcet_updates/{updateId} {
+      // Allow read if user is authenticated
+      allow read: if isAuthenticated();
+      
+      // Allow create if user is authenticated (teacher creating update)
+      allow create: if isAuthenticated() && 
+                       request.resource.data.keys().hasAll(['title', 'message', 'schoolCode']);
+      
+      // Allow update if user is authenticated (teacher)
+      allow update: if isAuthenticated();
+      
+      // Allow delete if user is authenticated (teacher)
+      allow delete: if isAuthenticated();
+    }
   }
 }
+
