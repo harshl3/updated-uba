@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:share_plus/share_plus.dart';
@@ -5,6 +6,7 @@ import '../theme/app_colors.dart';
 import '../firestore_service.dart';
 import 'attendance_report_service.dart';
 import 'report_preview_screen.dart';
+import 'file_saver/file_saver.dart';
 
 /// Attendance Report Screen
 ///
@@ -251,7 +253,7 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
 
       // Create and save Excel file
       final reportService = AttendanceReportService();
-      final filePath = await reportService.generateExcelReport(
+      final reportResult = await reportService.generateExcelReport(
         attendanceRecords: sortedDocs,
         className: _selectedClass!,
         reportDate: _selectedDate!,
@@ -263,10 +265,14 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
         });
 
         // Show success message
-        _showSuccessSnackBar('Report generated successfully!');
+        _showSuccessSnackBar(
+          kIsWeb
+              ? 'Report generated and downloaded successfully!'
+              : 'Report generated successfully!',
+        );
 
-        // Show dialog with file path and share option
-        _showReportDialog(filePath);
+        // Show dialog with file details and action options
+        _showReportDialog(reportResult);
       }
     } catch (e) {
       if (mounted) {
@@ -278,8 +284,8 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
     }
   }
 
-  /// Shows dialog with generated file path and action options
-  void _showReportDialog(String filePath) {
+  /// Shows dialog with generated report details and action options
+  void _showReportDialog(AttendanceReportResult reportResult) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -317,9 +323,11 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
                                 ),
                               ),
                               const SizedBox(height: 4),
-                              const Text(
-                                'Attendance report saved successfully',
-                                style: TextStyle(
+                              Text(
+                                kIsWeb
+                                    ? 'Attendance report downloaded successfully'
+                                    : 'Attendance report saved successfully',
+                                style: const TextStyle(
                                   fontSize: 14,
                                   color: AppColors.textSecondary,
                                 ),
@@ -343,7 +351,7 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
                       child: ElevatedButton.icon(
                         onPressed: () {
                           Navigator.pop(context);
-                          _navigateToReportPreview(filePath);
+                          _navigateToReportPreview(reportResult);
                         },
                         icon: const Icon(Icons.visibility),
                         label: const Text('View Excel Sheet'),
@@ -363,10 +371,10 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
                       child: OutlinedButton.icon(
                         onPressed: () {
                           Navigator.pop(context);
-                          _shareFile(filePath);
+                          _shareOrDownloadFile(reportResult);
                         },
-                        icon: const Icon(Icons.share),
-                        label: const Text('Share'),
+                        icon: Icon(kIsWeb ? Icons.download : Icons.share),
+                        label: Text(kIsWeb ? 'Download Again' : 'Share'),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.primaryBlue,
                           side: const BorderSide(
@@ -391,15 +399,16 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
   }
 
   /// Navigates to Report Preview Screen with file details using smooth transition
-  void _navigateToReportPreview(String filePath) {
+  void _navigateToReportPreview(AttendanceReportResult reportResult) {
     Navigator.push(
       context,
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
             ReportPreviewScreen(
-              reportFilePath: filePath,
-              className: _selectedClass ?? 'Unknown',
-              reportDate: _selectedDate ?? DateTime.now(),
+              reportFilePath: reportResult.filePath,
+              fileBytes: reportResult.bytes,
+              className: reportResult.className,
+              reportDate: reportResult.reportDate,
             ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           const begin = Offset(1.0, 0.0);
@@ -419,10 +428,21 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
     );
   }
 
-  /// Shares the generated Excel file using share_plus
-  Future<void> _shareFile(String filePath) async {
+  /// Shares or downloads the generated Excel file
+  Future<void> _shareOrDownloadFile(AttendanceReportResult reportResult) async {
     try {
-      await Share.shareXFiles([XFile(filePath)], text: 'Attendance Report');
+      if (kIsWeb) {
+        await downloadWebFile(
+          bytes: reportResult.bytes,
+          fileName: reportResult.fileName,
+        );
+        _showSuccessSnackBar('Report downloaded successfully!');
+        return;
+      }
+      await Share.shareXFiles(
+        [XFile(reportResult.filePath)],
+        text: 'Attendance Report',
+      );
     } catch (e) {
       _showErrorSnackBar('Error sharing file: ${e.toString()}');
     }

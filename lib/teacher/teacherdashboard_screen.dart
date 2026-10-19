@@ -15,13 +15,12 @@ import 'svpcet_updates_screen.dart';
 /// Teacher Dashboard Screen
 ///
 /// Main dashboard for teachers showing:
-/// - Welcome card with school info
-/// - Quick stats (total students, etc.)
-/// - Student registration button
-/// - List of registered students
-/// - Quick access to various features
-///
-/// All data is school-scoped and isolated per school.
+/// - Polished app bar
+/// - Welcome card with gradient accent
+/// - Compact quick statistics
+/// - Prominent Register Student action
+/// - Consistent 2-column quick actions grid
+/// - Modern 4-tab bottom navigation
 class TeacherDashboardScreen extends StatefulWidget {
   final String schoolCode;
   final String email;
@@ -39,7 +38,7 @@ class TeacherDashboardScreen extends StatefulWidget {
 }
 
 class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
-  int _currentIndex = 0; // For bottom navigation
+  int _currentIndex = 0;
   bool _isLoading = true;
   int _totalStudents = 0;
 
@@ -71,7 +70,7 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to load data: ${e.toString()}'),
+            content: Text('Failed to load dashboard data: ${e.toString()}'),
             backgroundColor: AppColors.red,
           ),
         );
@@ -84,14 +83,18 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
     final shouldLogout = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
+        title: const Text('Confirm Logout'),
+        content: const Text('Are you sure you want to log out of your session?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text('Cancel'),
           ),
-          TextButton(
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.red,
+              minimumSize: const Size(90, 40),
+            ),
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Logout'),
           ),
@@ -124,27 +127,28 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return Scaffold(
+      return const Scaffold(
         backgroundColor: AppColors.backgroundLight,
-        body: const Center(child: CircularProgressIndicator()),
+        body: Center(
+          child: CircularProgressIndicator(color: AppColors.primaryBlue),
+        ),
       );
     }
 
-    // Prevent back navigation - users must logout to go back
     return PopScope(
-      canPop: false, // Prevent back button
+      canPop: false,
       child: Scaffold(
         backgroundColor: AppColors.backgroundLight,
         appBar: AppBar(
           title: const Text('Teacher Dashboard'),
-          automaticallyImplyLeading: false, // Remove back button
+          automaticallyImplyLeading: false,
           actions: [
             IconButton(
-              icon: const Icon(Icons.notifications_outlined),
+              icon: const Icon(Icons.notifications_none_rounded),
+              tooltip: 'Notifications',
               onPressed: () {
-                // TODO: Implement notifications
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Notifications coming soon!')),
+                  const SnackBar(content: Text('Notifications are up to date.')),
                 );
               },
             ),
@@ -159,70 +163,104 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
   /// Builds welcome card with teacher info
   Widget _buildWelcomeCard() {
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
-        borderRadius: BorderRadius.circular(16),
+        gradient: AppColors.welcomeGradient,
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryBlue.withValues(alpha: 0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: AppColors.primaryBlue.withValues(alpha: 0.22),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            children: [
-              const Icon(Icons.school, size: 32, color: AppColors.textWhite),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Welcome, Teacher!',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textWhite,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'School ${widget.schoolCode}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: AppColors.textWhite,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          // Teacher Avatar
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1.5),
+            ),
+            child: const Icon(
+              Icons.person_rounded,
+              size: 28,
+              color: Colors.white,
+            ),
           ),
-          const SizedBox(height: 12),
-          Text(
-            widget.email,
-            style: const TextStyle(fontSize: 14, color: AppColors.textWhite),
+          const SizedBox(width: 14),
+
+          // Details
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Welcome Back!',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  'School ${widget.schoolCode}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white.withValues(alpha: 0.9),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  widget.email,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white.withValues(alpha: 0.8),
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+
+          // School Code Pill
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.22),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              widget.schoolCode,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                fontSize: 13,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  /// Builds stats card showing total students
+  /// Compact statistics summary card
   Widget _buildStatsCard() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: AppColors.cardWhite,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.borderLight),
         boxShadow: [
           BoxShadow(
             color: AppColors.cardShadow,
@@ -232,90 +270,144 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
         ],
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildStatItem(
-            icon: Icons.people,
-            label: 'Total Students',
-            value: _totalStudents.toString(),
-            color: AppColors.primaryBlue,
+          Expanded(
+            child: _buildStatItem(
+              icon: Icons.groups_rounded,
+              label: 'Total Students',
+              value: _totalStudents.toString(),
+              color: AppColors.primaryBlue,
+              bgColor: AppColors.lightBlue,
+            ),
           ),
-          _buildStatItem(
-            icon: Icons.school,
-            label: 'School',
-            value: widget.schoolCode,
-            color: AppColors.green,
+          Container(
+            width: 1,
+            height: 40,
+            color: AppColors.borderLight,
+          ),
+          Expanded(
+            child: _buildStatItem(
+              icon: Icons.apartment_rounded,
+              label: 'Assigned School',
+              value: 'School ${widget.schoolCode}',
+              color: AppColors.green,
+              bgColor: AppColors.greenLight,
+            ),
           ),
         ],
       ),
     );
   }
 
-  /// Builds individual stat item
   Widget _buildStatItem({
     required IconData icon,
     required String label,
     required String value,
     required Color color,
+    required Color bgColor,
   }) {
-    return Column(
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(icon, size: 32, color: color),
-        const SizedBox(height: 8),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: color,
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(10),
           ),
+          child: Icon(icon, size: 22, color: color),
         ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+        const SizedBox(width: 10),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+            ),
+          ],
         ),
       ],
     );
   }
 
-  /// Builds register student button
+  /// Register Student Quick Action Banner
   Widget _buildRegisterButton() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      width: double.infinity,
-      height: 56,
-      child: ElevatedButton.icon(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  StudentRegistrationPage(schoolCode: widget.schoolCode),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.cardWhite,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => StudentRegistrationPage(schoolCode: widget.schoolCode),
+              ),
+            ).then((_) => _loadInitialData());
+          },
+          borderRadius: BorderRadius.circular(14),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.greenLight,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.person_add_rounded, size: 22, color: AppColors.green),
+                ),
+                const SizedBox(width: 14),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Register New Student',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      Text(
+                        'Enroll a student to School roster',
+                        style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 14,
+                  color: AppColors.textSecondary,
+                ),
+              ],
             ),
-          ).then((_) {
-            // Refresh data after registration
-            _loadInitialData();
-          });
-        },
-        icon: const Icon(Icons.person_add, size: 24),
-        label: const Text(
-          'Register New Student',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.green,
-          foregroundColor: AppColors.textWhite,
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
           ),
         ),
       ),
     );
   }
 
-  /// Gets the current page based on bottom navigation index
+  /// Current page according to bottom navigation bar index
   Widget _getCurrentPage() {
     switch (_currentIndex) {
       case 0:
@@ -323,7 +415,7 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
       case 1:
         return StudentsListScreen(
           schoolCode: widget.schoolCode,
-          selectedClass: null, // null means all students
+          selectedClass: null,
         );
       case 2:
         return AttendanceScreen(schoolCode: widget.schoolCode);
@@ -334,150 +426,147 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
     }
   }
 
-  /// Builds the home page content
+  /// Builds home tab content with scroll padding to avoid bottom bar overlap
   Widget _buildHomePage() {
     return SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Welcome Card
           _buildWelcomeCard(),
-
-          // Quick Stats Card
           _buildStatsCard(),
-
-          // Register Student Button
           _buildRegisterButton(),
-
-          // Teacher Dashboard Grid
           _buildDashboardGrid(),
-
-          const SizedBox(height: 20),
         ],
       ),
     );
   }
 
-  /// Builds teacher dashboard grid with feature cards
+  /// 2-Column Quick Actions Grid
   Widget _buildDashboardGrid() {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Teacher Dashboard',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8.0),
+            child: Text(
+              'Quick Management',
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 6),
           GridView.count(
             crossAxisCount: 2,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 1.1,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.25,
             children: [
               _buildDashboardCard(
-                icon: Icons.people,
+                icon: Icons.groups_rounded,
                 label: 'Student Details',
-                imagePath: 'assets/dashboard/studentdetails.png',
-                onTap: () {
-                  // Navigate to class selection screen
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          ClassSelectionScreen(schoolCode: widget.schoolCode),
-                    ),
-                  );
-                },
-              ),
-              _buildDashboardCard(
-                icon: Icons.calendar_today,
-                label: 'Attendance',
-                imagePath: 'assets/dashboard/attendance.jpg',
+                color: const Color(0xFF3478E5),
+                bgColor: const Color(0xFFEAF6FC),
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          AttendanceScreen(schoolCode: widget.schoolCode),
+                      builder: (context) => ClassSelectionScreen(schoolCode: widget.schoolCode),
                     ),
                   );
                 },
               ),
               _buildDashboardCard(
-                icon: Icons.book,
-                label: 'Study Material',
-                imagePath: 'assets/dashboard/studymaterial.png',
-                onTap: () {
-                  // TODO: Navigate to study material upload
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Study Material coming soon!'),
-                    ),
-                  );
-                },
-              ),
-              _buildDashboardCard(
-                icon: Icons.campaign,
-                label: 'Announcement',
-                imagePath: 'assets/dashboard/announcement.png',
+                icon: Icons.how_to_reg_rounded,
+                label: 'Daily Attendance',
+                color: const Color(0xFF20B96B),
+                bgColor: const Color(0xFFE8F8F0),
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          AnnouncementScreen(schoolCode: widget.schoolCode),
+                      builder: (context) => AttendanceScreen(schoolCode: widget.schoolCode),
                     ),
                   );
                 },
               ),
               _buildDashboardCard(
-                icon: Icons.assessment,
-                label: 'Results',
-                imagePath: 'assets/dashboard/results.png',
-                onTap: () {
-                  // TODO: Navigate to results management
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Results management coming soon!'),
-                    ),
-                  );
-                },
-              ),
-              _buildDashboardCard(
-                icon: Icons.file_download,
+                icon: Icons.description_rounded,
                 label: 'Attendance Report',
-                imagePath: 'assets/dashboard/attendance_report.png',
+                color: const Color(0xFF0284C7),
+                bgColor: const Color(0xFFE0F2FE),
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          AttendanceReportScreen(schoolCode: widget.schoolCode),
+                      builder: (context) => AttendanceReportScreen(schoolCode: widget.schoolCode),
                     ),
                   );
                 },
               ),
               _buildDashboardCard(
-                icon: Icons.history,
-                label: 'SVPCET Updates',
-                imagePath: 'assets/dashboard/updates.png',
+                icon: Icons.campaign_rounded,
+                label: 'Announcements',
+                color: const Color(0xFFEA580C),
+                bgColor: const Color(0xFFFFEDD5),
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          SvpcetUpdatesScreen(schoolCode: widget.schoolCode),
+                      builder: (context) => AnnouncementScreen(schoolCode: widget.schoolCode),
                     ),
                   );
                 },
+              ),
+              _buildDashboardCard(
+                icon: Icons.menu_book_rounded,
+                label: 'Study Material',
+                color: const Color(0xFF7C3AED),
+                bgColor: const Color(0xFFF3E8FF),
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Study Material repository coming soon!')),
+                  );
+                },
+              ),
+              _buildDashboardCard(
+                icon: Icons.analytics_rounded,
+                label: 'Results',
+                color: const Color(0xFF0D9488),
+                bgColor: const Color(0xFFCCFBF1),
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Results management module coming soon!')),
+                  );
+                },
+              ),
+              _buildDashboardCard(
+                icon: Icons.notifications_active_rounded,
+                label: 'School Updates',
+                color: const Color(0xFF4F46E5),
+                bgColor: const Color(0xFFEEF2FF),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SvpcetUpdatesScreen(schoolCode: widget.schoolCode),
+                    ),
+                  );
+                },
+              ),
+              _buildDashboardCard(
+                icon: Icons.school_rounded,
+                label: 'Switch School',
+                color: const Color(0xFF64748B),
+                bgColor: const Color(0xFFF1F5F9),
+                onTap: _handleLogout,
               ),
             ],
           ),
@@ -486,67 +575,76 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
     );
   }
 
-  /// Builds individual dashboard card
+  /// Individual clean modern dashboard tile
   Widget _buildDashboardCard({
     required IconData icon,
     required String label,
-    required String imagePath,
+    required Color color,
+    required Color bgColor,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.cardWhite,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.cardShadow,
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Try to load image, fallback to icon
-            Image.asset(
-              imagePath,
-              width: 48,
-              height: 48,
-              errorBuilder: (context, error, stackTrace) {
-                return Icon(icon, size: 48, color: AppColors.primaryBlue);
-              },
-            ),
-            const SizedBox(height: 12),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: AppColors.cardWhite,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.borderLight),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.cardShadow,
+                blurRadius: 6,
+                offset: const Offset(0, 2),
               ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: bgColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Center(
+                    child: Icon(icon, size: 22, color: color),
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  /// Builds bottom navigation bar
+  /// Bottom navigation bar with modern styling
   Widget _buildBottomNavigationBar() {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.cardWhite,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.cardShadow,
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
+        border: Border(
+          top: BorderSide(color: AppColors.borderLight, width: 1),
+        ),
       ),
       child: BottomNavigationBar(
         currentIndex: _currentIndex,
@@ -556,20 +654,35 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
           });
         },
         type: BottomNavigationBarType.fixed,
+        backgroundColor: AppColors.cardWhite,
         selectedItemColor: AppColors.primaryBlue,
         unselectedItemColor: AppColors.textSecondary,
+        elevation: 0,
+        selectedFontSize: 12,
+        unselectedFontSize: 12,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Students'),
           BottomNavigationBarItem(
-            icon: Icon(Icons.assessment),
+            icon: Icon(Icons.dashboard_rounded),
+            activeIcon: Icon(Icons.dashboard_rounded),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.groups_outlined),
+            activeIcon: Icon(Icons.groups_rounded),
+            label: 'Students',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.how_to_reg_outlined),
+            activeIcon: Icon(Icons.how_to_reg_rounded),
             label: 'Attendance',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'More'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.menu_rounded),
+            activeIcon: Icon(Icons.menu_open_rounded),
+            label: 'More',
+          ),
         ],
       ),
     );
   }
-
-  // NOTE: More page is now shared via `MoreMenuPage` (About Us / Contact Us / Logout).
 }

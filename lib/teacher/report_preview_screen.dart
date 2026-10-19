@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 import '../theme/app_colors.dart';
 import 'excel_preview_screen.dart';
+import 'file_saver/file_saver.dart';
 
 /// Report Preview Screen
 ///
@@ -16,12 +18,14 @@ class ReportPreviewScreen extends StatefulWidget {
   final String reportFilePath;
   final String className;
   final DateTime reportDate;
+  final List<int>? fileBytes;
 
   const ReportPreviewScreen({
     super.key,
     required this.reportFilePath,
     required this.className,
     required this.reportDate,
+    this.fileBytes,
   });
 
   @override
@@ -39,7 +43,7 @@ class _ReportPreviewScreenState extends State<ReportPreviewScreen> {
 
   /// Extracts file name from full path
   String _extractFileName(String path) {
-    return path.split(Platform.pathSeparator).last;
+    return path.split(RegExp(r'[/\\]')).last;
   }
 
   /// Formats date for display
@@ -64,8 +68,18 @@ class _ReportPreviewScreenState extends State<ReportPreviewScreen> {
   /// Gets file size in readable format
   Future<String> _getFileSizeString() async {
     try {
-      final file = File(widget.reportFilePath);
-      final sizeInBytes = await file.length();
+      int? sizeInBytes;
+      if (widget.fileBytes != null) {
+        sizeInBytes = widget.fileBytes!.length;
+      } else if (!kIsWeb) {
+        final file = File(widget.reportFilePath);
+        sizeInBytes = await file.length();
+      }
+
+      if (sizeInBytes == null) {
+        return 'Unknown';
+      }
+
       if (sizeInBytes < 1024) {
         return '$sizeInBytes B';
       } else if (sizeInBytes < 1024 * 1024) {
@@ -82,15 +96,35 @@ class _ReportPreviewScreenState extends State<ReportPreviewScreen> {
   void _viewExcelFile() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) =>
-            ExcelPreviewScreen(filePath: widget.reportFilePath),
+        builder: (context) => ExcelPreviewScreen(
+          filePath: widget.reportFilePath,
+          fileBytes: widget.fileBytes,
+        ),
       ),
     );
   }
 
-  /// Shares the Excel file
+  /// Shares or downloads the Excel file
   Future<void> _shareExcelFile() async {
     try {
+      if (kIsWeb) {
+        if (widget.fileBytes != null) {
+          await downloadWebFile(
+            bytes: widget.fileBytes!,
+            fileName: _fileName,
+          );
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Report downloaded successfully!'),
+                backgroundColor: AppColors.green,
+              ),
+            );
+          }
+        }
+        return;
+      }
+
       await Share.shareXFiles(
         [XFile(widget.reportFilePath)],
         text: 'Attendance Report - ${widget.className}',
@@ -229,13 +263,13 @@ class _ReportPreviewScreenState extends State<ReportPreviewScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Share Button
+                  // Share / Download Button
                   ElevatedButton.icon(
                     onPressed: _shareExcelFile,
-                    icon: const Icon(Icons.share),
-                    label: const Text(
-                      'Share Excel Sheet',
-                      style: TextStyle(
+                    icon: Icon(kIsWeb ? Icons.download : Icons.share),
+                    label: Text(
+                      kIsWeb ? 'Download Excel Sheet' : 'Share Excel Sheet',
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),

@@ -5,6 +5,11 @@ import 'services/firebase_initialization_service.dart';
 import 'constants/app_constants.dart';
 import 'theme/app_colors.dart';
 
+/// School Selection Screen
+///
+/// Welcomes users with an education-themed interface and allows them to
+/// choose their institution (School A, B, or C). Initializes the respective
+/// Firebase project and routes to role selection.
 class SchoolSelectionPage extends StatefulWidget {
   const SchoolSelectionPage({super.key});
 
@@ -12,57 +17,30 @@ class SchoolSelectionPage extends StatefulWidget {
   State<SchoolSelectionPage> createState() => _SchoolSelectionPageState();
 }
 
-class _SchoolSelectionPageState extends State<SchoolSelectionPage>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
+class _SchoolSelectionPageState extends State<SchoolSelectionPage> {
   final Map<String, bool> _initializingSchools = {};
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: AppConstants.animationDuration,
-    );
-    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeOutBack);
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
 
   /// Handles school selection and initializes Firebase for the selected school.
   Future<void> _handleSchoolSelection(String schoolCode) async {
-    // Check if already initializing
     if (_initializingSchools[schoolCode] == true) {
       return;
     }
 
-if (kDebugMode) {
-    debugPrint('📚 User selected School $schoolCode');
-  }
-
+    if (kDebugMode) {
+      debugPrint('📚 User selected School $schoolCode');
+    }
 
     setState(() {
       _initializingSchools[schoolCode] = true;
     });
 
     try {
-
-
       // Initialize Firebase for the selected school
       await FirebaseInitializationService.initializeForSchool(schoolCode);
 
-
- if (kDebugMode) {
-      debugPrint('✅ Firebase initialization complete for School $schoolCode');
-      debugPrint('🚀 Navigating to role selection page...');
-    }
-
+      if (kDebugMode) {
+        debugPrint('✅ Firebase initialization complete for School $schoolCode');
+      }
 
       if (!mounted) return;
 
@@ -75,11 +53,10 @@ if (kDebugMode) {
       );
     } catch (e) {
       if (kDebugMode) {
-      debugPrint('❌ Error initializing School $schoolCode: $e');
-    }
+        debugPrint('❌ Error initializing School $schoolCode: $e');
+      }
       if (!mounted) return;
-      
-      // Show error message
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to initialize school: ${e.toString()}'),
@@ -96,43 +73,111 @@ if (kDebugMode) {
     }
   }
 
-  Widget _buildSchoolButton(String schoolName, String schoolCode) {
+  Widget _buildSchoolCard({
+    required String schoolName,
+    required String schoolCode,
+    required String subtitle,
+    required IconData icon,
+  }) {
     final bool isInitializing = _initializingSchools[schoolCode] == true;
-    
-    return ScaleTransition(
-      scale: _animation,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12.0),
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 60),
-            backgroundColor: isInitializing 
-                ? AppColors.textSecondary 
-                : AppColors.primaryBlue,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14.0),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: isInitializing ? null : () => _handleSchoolSelection(schoolCode),
+          borderRadius: BorderRadius.circular(16),
+          child: Ink(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            decoration: BoxDecoration(
+              color: AppColors.cardWhite,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isInitializing ? AppColors.primaryBlue : AppColors.borderLight,
+                width: isInitializing ? 1.5 : 1.0,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.cardShadow,
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
-            textStyle: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+            child: Row(
+              children: [
+                // Icon Avatar
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: AppColors.lightBlue,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      icon,
+                      size: 26,
+                      color: AppColors.primaryBlue,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+
+                // Name & Subtitle
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        schoolName,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Trailing Action / Loader
+                if (isInitializing)
+                  const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.2,
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryBlue),
+                    ),
+                  )
+                else
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: AppColors.lightBlueAlt,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.borderLight),
+                    ),
+                    child: const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 14,
+                      color: AppColors.primaryBlue,
+                    ),
+                  ),
+              ],
             ),
           ),
-          onPressed: isInitializing 
-              ? null 
-              : () => _handleSchoolSelection(schoolCode),
-          child: isInitializing
-              ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                )
-              : Text(
-                  schoolName,
-                  style: const TextStyle(color: Colors.white),
-                ),
         ),
       ),
     );
@@ -142,44 +187,111 @@ if (kDebugMode) {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
-      body: Container(
-        padding: const EdgeInsets.all(20),
+      body: SafeArea(
         child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Card(
-                elevation: 8,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    children: [
-                      const Icon(
-                        Icons.school,
-                        size: 64,
-                        color: AppColors.primaryBlue,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Clean Education Badge
+                Container(
+                  width: 76,
+                  height: 76,
+                  decoration: BoxDecoration(
+                    color: AppColors.cardWhite,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.borderLight, width: 1.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primaryBlue.withValues(alpha: 0.12),
+                        blurRadius: 16,
+                        offset: const Offset(0, 4),
                       ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        "Select Your School",
+                    ],
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.school_rounded,
+                      size: 40,
+                      color: AppColors.primaryBlue,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Title
+                const Text(
+                  "Select Your School",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                const SizedBox(height: 6),
+
+                // Subtitle
+                const Text(
+                  "Choose your school to continue to the portal.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 32),
+
+                // School Cards List
+                _buildSchoolCard(
+                  schoolName: AppConstants.schoolNameA,
+                  schoolCode: AppConstants.schoolCodeA,
+                  subtitle: "Portal for School A students & teachers",
+                  icon: Icons.account_balance_rounded,
+                ),
+                _buildSchoolCard(
+                  schoolName: AppConstants.schoolNameB,
+                  schoolCode: AppConstants.schoolCodeB,
+                  subtitle: "Portal for School B students & teachers",
+                  icon: Icons.apartment_rounded,
+                ),
+                _buildSchoolCard(
+                  schoolName: AppConstants.schoolNameC,
+                  schoolCode: AppConstants.schoolCodeC,
+                  subtitle: "Portal for School C students & teachers",
+                  icon: Icons.domain_rounded,
+                ),
+
+                const SizedBox(height: 28),
+
+                // Footer branding badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardWhite.withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.borderLight),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.shield_outlined, size: 14, color: AppColors.textSecondary),
+                      SizedBox(width: 6),
+                      Text(
+                        "Unnat Bharat Abhiyan (UBA)",
                         style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
                         ),
                       ),
                     ],
                   ),
                 ),
-              ),
-              const SizedBox(height: 40),
-              _buildSchoolButton(AppConstants.schoolNameA, AppConstants.schoolCodeA),
-              _buildSchoolButton(AppConstants.schoolNameB, AppConstants.schoolCodeB),
-              _buildSchoolButton(AppConstants.schoolNameC, AppConstants.schoolCodeC),
-            ],
+              ],
+            ),
           ),
         ),
       ),

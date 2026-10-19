@@ -181,15 +181,9 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
         title: const Text('Register New Student'),
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF4A90E2), Color(0xFF50E3C2)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
+        color: AppColors.backgroundLight,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(16),
           child: Form(
             key: _formKey,
             child: Column(
@@ -234,14 +228,7 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
                 const SizedBox(height: 24),
                 
                 // Required Fields Section
-                const Text(
-                  'Required Information',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textWhite,
-                  ),
-                ),
+                _buildSectionHeader('Required Information', Icons.star_rounded),
                 const SizedBox(height: 16),
                 
                 // Name
@@ -381,16 +368,7 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
                 const SizedBox(height: 32),
                 
                 // Optional Fields Section
-                const Text(
-                  'Additional Information (Optional)',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textWhite,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const SizedBox(height: 16),
+                _buildSectionHeader('Additional Information', Icons.add_circle_outline_rounded),
                 
                 // Father's Name
                 _buildTextField(
@@ -526,19 +504,59 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
                 const SizedBox(height: 16),
                 
                 // Info text
-                Text(
-                  '* Required fields\nAll other fields are optional.\nStudent will be registered in School ${widget.schoolCode} only.',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.white70,
-                    fontStyle: FontStyle.italic,
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.lightBlue,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.borderLight),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.info_outline_rounded,
+                        size: 16,
+                        color: AppColors.primaryBlue,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '* Required fields. All other fields are optional. Student will be registered in School ${widget.schoolCode} only.',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: AppColors.primaryBlue),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ],
       ),
     );
   }

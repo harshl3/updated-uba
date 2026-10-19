@@ -7,7 +7,7 @@ import 'services/auth_service.dart';
 import 'theme/app_colors.dart';
 
 /// Login page for both teachers and students.
-/// 
+///
 /// Teachers: Use fixed credentials per school (no signup allowed)
 /// Students: Use credentials provided by their teacher during registration
 class LoginPage extends StatefulWidget {
@@ -27,12 +27,17 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   bool _obscurePassword = true;
 
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
   /// Handles login for both teachers and students using Firebase Auth.
-  /// 
-  /// Teachers: Validates against fixed credentials per school
-  /// Students: Validates against Firebase Auth and verifies school access
   Future<void> _handleLogin() async {
-    // Validate form
+    if (_isLoading) return;
+
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -48,14 +53,12 @@ class _LoginPageState extends State<LoginPage> {
       UserCredential? userCredential;
 
       if (widget.role == AppConstants.roleTeacher) {
-        // Teacher login with fixed credentials
         userCredential = await AuthService.loginTeacher(
           schoolCode: widget.schoolCode,
           email: email,
           password: password,
         );
       } else {
-        // Student login with Firebase Auth
         userCredential = await AuthService.loginStudent(
           schoolCode: widget.schoolCode,
           email: email,
@@ -67,8 +70,6 @@ class _LoginPageState extends State<LoginPage> {
 
       final user = userCredential.user;
       if (user != null) {
-        // Login successful - navigate to appropriate dashboard based on role
-        // Use pushAndRemoveUntil to prevent back navigation to login
         if (widget.role == AppConstants.roleTeacher) {
           Navigator.pushAndRemoveUntil(
             context,
@@ -79,7 +80,7 @@ class _LoginPageState extends State<LoginPage> {
                 userId: user.uid,
               ),
             ),
-            (route) => false, // Remove all previous routes
+            (route) => false,
           );
         } else {
           Navigator.pushAndRemoveUntil(
@@ -91,7 +92,7 @@ class _LoginPageState extends State<LoginPage> {
                 userId: user.uid,
               ),
             ),
-            (route) => false, // Remove all previous routes
+            (route) => false,
           );
         }
       } else {
@@ -99,27 +100,22 @@ class _LoginPageState extends State<LoginPage> {
       }
     } on AuthException catch (e) {
       if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.message),
-            backgroundColor: AppColors.red,
-            duration: AppConstants.snackbarDurationLong,
-            action: SnackBarAction(
-              label: 'OK',
-              textColor: AppColors.textWhite,
-              onPressed: () {},
-            ),
-          ),
-        );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          backgroundColor: AppColors.red,
+          duration: AppConstants.snackbarDurationLong,
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Login failed: ${e.toString()}'),
-            backgroundColor: AppColors.red,
-            duration: AppConstants.snackbarDurationLong,
-          ),
-        );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Login failed: ${e.toString()}'),
+          backgroundColor: AppColors.red,
+          duration: AppConstants.snackbarDurationLong,
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -130,191 +126,247 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    // Email field is now editable for teachers - no pre-filling
-  }
-
-  @override
-  void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final bool isTeacher = widget.role == AppConstants.roleTeacher;
+    final String roleTitle = isTeacher ? "Teacher" : "Student";
 
     return Scaffold(
+      backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
-        title: Text("${widget.role.toUpperCase()} Login"),
-        // Allow back navigation to role selection (not prevented here)
+        title: Text("$roleTitle Login"),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
-      body: Container(
-        padding: const EdgeInsets.all(24),
-        color: AppColors.backgroundLight,
+      body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
             child: Form(
               key: _formKey,
               child: Column(
-                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // School info card
-                  Card(
-                    elevation: 8,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                  // School and Role Header Badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.cardWhite,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.borderLight),
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          Icon(
-                            isTeacher ? Icons.school : Icons.person,
-                            size: 48,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.school_rounded,
+                          size: 18,
+                          color: AppColors.primaryBlue,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'School ${widget.schoolCode} • $roleTitle Portal',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
                             color: AppColors.primaryBlue,
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'School ${widget.schoolCode}',
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primaryBlue,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Login Card Container
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: AppColors.cardWhite,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.borderLight, width: 1.2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.cardShadow,
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Card Header
+                        Row(
+                          children: [
+                            Container(
+                              width: 46,
+                              height: 46,
+                              decoration: BoxDecoration(
+                                color: isTeacher ? AppColors.lightBlue : AppColors.greenLight,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                isTeacher ? Icons.badge_rounded : Icons.person_rounded,
+                                size: 24,
+                                color: isTeacher ? AppColors.primaryBlue : AppColors.green,
+                              ),
                             ),
-                          ),
-                          if (isTeacher) ...[
-                            const SizedBox(height: 4),
-                            const Text(
-                              'Fixed Credentials',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColors.textSecondary,
-                                fontStyle: FontStyle.italic,
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Welcome back",
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    "Enter your credentials to continue",
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Email Field
+                        const Text(
+                          "Email Address",
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          controller: emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: InputDecoration(
+                            hintText: isTeacher
+                                ? "Enter your teacher email"
+                                : "Enter your student email",
+                            prefixIcon: const Icon(Icons.email_outlined, size: 20),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Please enter your email';
+                            }
+                            if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                                .hasMatch(value.trim())) {
+                              return 'Please enter a valid email address';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 18),
+
+                        // Password Field
+                        const Text(
+                          "Password",
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          controller: passwordController,
+                          obscureText: _obscurePassword,
+                          decoration: InputDecoration(
+                            hintText: "Enter your password",
+                            prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                                size: 20,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
+                            ),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your password';
+                            }
+                            if (value.length < 6) {
+                              return 'Password must be at least 6 characters';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 26),
+
+                        // Login Action Button
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: _isLoading ? null : _handleLogin,
+                            child: _isLoading
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    ),
+                                  )
+                                : const Text("Sign In"),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Teacher notice
+                  if (isTeacher) ...[
+                    const SizedBox(height: 18),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: AppColors.lightBlueAlt,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.borderLight),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline_rounded,
+                            size: 18,
+                            color: AppColors.primaryBlue,
+                          ),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Teacher accounts use fixed credentials per school. Contact administrator for assistance.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                                height: 1.3,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 32),
-                  // Email field
-                  TextFormField(
-                    controller: emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                      labelText: "Email",
-                      hintText: isTeacher
-                          ? "Enter teacher email"
-                          : "Enter your email",
-                      prefixIcon: const Icon(Icons.email),
-                      filled: true,
-                      fillColor: AppColors.cardWhite,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.borderLight),
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter your email';
-                      }
-                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                          .hasMatch(value.trim())) {
-                        return 'Please enter a valid email';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  // Password field
-                  TextFormField(
-                    controller: passwordController,
-                    obscureText: _obscurePassword,
-                    decoration: InputDecoration(
-                      labelText: "Password",
-                      hintText: isTeacher ? "Enter teacher password" : "Enter your password",
-                      prefixIcon: const Icon(Icons.lock),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
-                      ),
-                      filled: true,
-                      fillColor: AppColors.cardWhite,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.borderLight),
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your password';
-                      }
-                      if (value.length < 6) {
-                        return 'Password must be at least 6 characters';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 32),
-                  // Login button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _handleLogin,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryBlue,
-                      foregroundColor: AppColors.textWhite,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 4,
-                    ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            )
-                          : const Text(
-                              "Login",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                    ),
-                  ),
-                  if (isTeacher) ...[
-                    const SizedBox(height: 16),
-                      const Text(
-                        'Note: Teacher accounts use fixed credentials.\nNo signup is allowed.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
                   ],
                 ],
               ),

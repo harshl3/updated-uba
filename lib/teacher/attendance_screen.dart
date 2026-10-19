@@ -411,6 +411,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
     // Check if attendance already marked for this class and date
     final alreadyMarked = await _isAttendanceAlreadyMarked();
+    if (!mounted) return;
     if (alreadyMarked) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -912,7 +913,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             borderRadius: BorderRadius.circular(8),
             boxShadow: [
               BoxShadow(
-                color: (isPresent ? presentText : absentText).withOpacity(0.2),
+                color: (isPresent ? presentText : absentText).withValues(alpha: 0.2),
                 blurRadius: 6,
                 offset: const Offset(0, 2),
               ),

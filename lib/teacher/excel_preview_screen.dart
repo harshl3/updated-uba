@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:excel/excel.dart';
 import '../theme/app_colors.dart';
@@ -9,15 +10,20 @@ import '../theme/app_colors.dart';
 /// in a professional DataTable format with formatting support.
 ///
 /// Features:
-/// - Reads Excel file from provided file path
+/// - Reads Excel file from provided bytes or file path
 /// - Parses and displays all rows in a DataTable
 /// - Supports scrolling (horizontal and vertical)
 /// - Status formatting (P in green, A in red)
 /// - Error handling for missing or corrupt files
 class ExcelPreviewScreen extends StatefulWidget {
   final String filePath;
+  final List<int>? fileBytes;
 
-  const ExcelPreviewScreen({super.key, required this.filePath});
+  const ExcelPreviewScreen({
+    super.key,
+    required this.filePath,
+    this.fileBytes,
+  });
 
   @override
   State<ExcelPreviewScreen> createState() => _ExcelPreviewScreenState();
@@ -35,21 +41,30 @@ class _ExcelPreviewScreenState extends State<ExcelPreviewScreen> {
   /// Loads and parses the Excel file
   Future<ExcelData> _loadExcelFile() async {
     try {
-      // Check if file exists
-      final file = File(widget.filePath);
-      print('DEBUG: Reading file from: ${widget.filePath}');
+      List<int> bytes;
 
-      if (!file.existsSync()) {
-        throw Exception('File not found: ${widget.filePath}');
+      if (widget.fileBytes != null && widget.fileBytes!.isNotEmpty) {
+        bytes = widget.fileBytes!;
+        print('DEBUG: Loading Excel from memory bytes: ${bytes.length} bytes');
+      } else if (!kIsWeb) {
+        // Check if file exists on native platforms
+        final file = File(widget.filePath);
+        print('DEBUG: Reading file from: ${widget.filePath}');
+
+        if (!file.existsSync()) {
+          throw Exception('File not found: ${widget.filePath}');
+        }
+
+        print('DEBUG: File exists, checking size...');
+        final fileSize = await file.length();
+        print('DEBUG: File size: $fileSize bytes');
+
+        // Read Excel file bytes
+        bytes = file.readAsBytesSync();
+        print('DEBUG: Bytes read: ${bytes.length} bytes');
+      } else {
+        throw Exception('Cannot read local file path on Web platform');
       }
-
-      print('DEBUG: File exists, checking size...');
-      final fileSize = await file.length();
-      print('DEBUG: File size: $fileSize bytes');
-
-      // Read Excel file bytes
-      final bytes = file.readAsBytesSync();
-      print('DEBUG: Bytes read: ${bytes.length} bytes');
 
       if (bytes.isEmpty) {
         throw Exception('Excel file is empty or corrupted');

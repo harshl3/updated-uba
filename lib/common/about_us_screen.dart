@@ -1,175 +1,416 @@
 import 'package:flutter/material.dart';
-
 import '../theme/app_colors.dart';
 
 /// About Us Screen
 ///
-/// NOTE: Please update the developer names / college info below to match your team.
+/// Displays institution info, department, mentor, and developer team.
+/// Design: Material 3-aligned with primary gradient header and modern cards.
 class AboutUsScreen extends StatelessWidget {
   const AboutUsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
-        title: const Text(
-          'About Us',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-          ),
+        title: const Text('About Us'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          onPressed: () => Navigator.pop(context),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor:Color(0xFF4A90E2),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            buildCard(
-              'SVPCET',
-              'St. Vincent Pallotti College of Engineering and Technology was established in 2004 by the Nagpur Pallottine Society. The College is accredited by NAAC with A grade. The College is affiliated to Nagpur University approved by Director of Technical Education, Mumbai and AICTE, Government of India',
-              Colors.blue,
-              'assets/drawer/svpcet.jpeg',
-              largerImage: true,
-              teamMembers: [],
+            // Gradient Hero Header
+            Container(
+              padding: const EdgeInsets.fromLTRB(24, 32, 24, 36),
+              decoration: const BoxDecoration(
+                gradient: AppColors.primaryGradient,
+              ),
+              child: Column(
+                children: [
+                  // College logo / institution icon
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: AppColors.cardWhite,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.15),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Image.asset(
+                      'assets/drawer/college_logo.png',
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => const Icon(
+                        Icons.school_rounded,
+                        size: 40,
+                        color: AppColors.primaryBlue,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'SVPCET',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textWhite,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'St. Vincent Pallotti College of Engineering\nand Technology, Nagpur',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.white70,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildBadge('NAAC A Grade  •  Est. 2004'),
+                ],
+              ),
             ),
-            const SizedBox(height: 20),
-            buildCard(
-              'DEPARTMENT OF INFORMATION TECHNOLOGY',
-              'To be a center of excellence in the domain of Information Technology to nurture future professionals. To impart computing knowledge in the field of information technology and emerging domains and to provide an effective learning environment for developing future technocrats with professional ethos and attitude for lifelong learning.',
-              Colors.orange,
-              'assets/drawer/college_logo.png',
-              teamMembers: [],
-            ),
 
-
-
-            const SizedBox(height: 20),
-            buildCard(
-              'MEET OUR TEAM',
-              'Mentored by: Dr. Priti Uparkar  \n\nDeveloped by: ',
-              const Color.fromARGB(255, 120, 31, 136),
-              '',
-              teamMembers: [
-                TeamMember('1.Archit Kanadkhedkar'),
-                // TeamMember('2.Prasad Mankar'),
-                TeamMember('2.Harshal Mendhule'),
-                TeamMember('3.Gauri Thakre'),
-                TeamMember('4.Anshu Bongade'),
-                TeamMember('5.Divyanshu Nikhare')
-              ],
-            ),
-            const SizedBox(height: 20),
-            Image.asset(
-              'assets/drawer/test1.png', // Replace with your image asset path
-              fit: BoxFit.cover, // Adjust the fit as needed
-              height: 350, // Set the height as needed
-              width: double.infinity, // Occupy full width
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget buildCard(
-      String title,
-      String content,
-      Color color,
-      String imagePath, {
-        bool largerImage = false,
-        required List<TeamMember> teamMembers,
-      }) {
-    return AnimatedContainer(
-      duration: const Duration(seconds: 4),
-      curve: Curves.easeInOut,
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      padding: const EdgeInsets.all(16.0),
-
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12.0),
-        gradient: const LinearGradient(
-          colors: [
-            Color.fromARGB(255, 175, 241, 195), // #84fab0
-            Color.fromARGB(255, 142, 202, 234), // #8fd3f4
-          ],
-          begin: Alignment.topRight,   // matches 120deg direction
-          end: Alignment.bottomLeft,
-          stops: [0.0, 1.0],
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color.fromARGB(40, 0, 0, 0), // stronger shadow for separation
-            blurRadius: 14,
-            offset: Offset(0, 8),
-          ),
-        ],
-      ),
-
-
-
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (imagePath.isNotEmpty)
+            // College hero image
             SizedBox(
-              height: largerImage ? 150 : 50,
-              width: double.infinity,
-              child: GestureDetector(
-                onTap: () {
-                  // Image click behavior removed since no external links
-                },
-                child: Image.asset(
-                  imagePath,
-                  fit: BoxFit.cover,
+              height: 200,
+              child: Image.asset(
+                'assets/drawer/svpcet.jpeg',
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  height: 200,
+                  color: AppColors.borderLight,
+                  child: const Center(
+                    child: Icon(
+                      Icons.account_balance_rounded,
+                      size: 64,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ),
               ),
             ),
-          const SizedBox(height: 10),
-          Text(
-            title.toUpperCase(),
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 17,
-              color: Color.fromARGB(255, 0, 0, 0),
+
+            // Content cards
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // About Institution card
+                  _buildInfoCard(
+                    icon: Icons.account_balance_rounded,
+                    iconColor: AppColors.primaryBlue,
+                    iconBg: AppColors.lightBlue,
+                    title: 'About the Institution',
+                    body:
+                        'Established in 2004 by the Nagpur Pallottine Society, SVPCET is accredited '
+                        'by NAAC with an A grade. Affiliated to Nagpur University, approved by the '
+                        'Director of Technical Education (Mumbai) and AICTE, Government of India.',
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Department card
+                  _buildInfoCard(
+                    icon: Icons.computer_rounded,
+                    iconColor: AppColors.orange,
+                    iconBg: AppColors.orangeLight,
+                    title: 'Department of Information Technology',
+                    body:
+                        'To be a centre of excellence in Information Technology to nurture future '
+                        'professionals. We impart computing knowledge in emerging domains and provide '
+                        'an effective learning environment for developing future technocrats with '
+                        'professional ethos and attitude for lifelong learning.',
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Team card
+                  _buildTeamCard(),
+                  const SizedBox(height: 16),
+
+                  // Bottom image / group photo
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.asset(
+                      'assets/drawer/test1.png',
+                      fit: BoxFit.cover,
+                      height: 260,
+                      width: double.infinity,
+                      errorBuilder: (_, __, ___) => Container(
+                        height: 180,
+                        decoration: BoxDecoration(
+                          color: AppColors.lightBlue,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.group_rounded,
+                            size: 64,
+                            color: AppColors.primaryBlue,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBadge(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.35)),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textWhite,
+          letterSpacing: 0.3,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoCard({
+    required IconData icon,
+    required Color iconColor,
+    required Color iconBg,
+    required String title,
+    required String body,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.cardWhite,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.borderLight),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: iconBg,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 22, color: iconColor),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  body,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                    height: 1.55,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 10),
-          Text(
-            content,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: Color.fromARGB(255, 0, 0, 0),
-            ),
-          ),
-          if (teamMembers.isNotEmpty)
-            ...teamMembers.map((member) => buildTeamMember(member)),
         ],
       ),
     );
   }
 
-  Widget buildTeamMember(TeamMember member) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Text(
-        member.name,
-        style: const TextStyle(
-          fontSize: 14,
-          color: Color.fromARGB(255, 0, 0, 0),
-        ),
+  Widget _buildTeamCard() {
+    const teamMembers = [
+      ('Archit Kanadkhedkar', Icons.person_rounded),
+      ('Harshal Mendhule', Icons.person_rounded),
+      ('Gauri Thakre', Icons.person_rounded),
+      ('Anshu Bongade', Icons.person_rounded),
+      ('Divyanshu Nikhare', Icons.person_rounded),
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.cardWhite,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.borderLight),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.purpleStart.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.groups_rounded,
+                  size: 22,
+                  color: AppColors.purpleStart,
+                ),
+              ),
+              const SizedBox(width: 16),
+              const Expanded(
+                child: Text(
+                  'Meet Our Team',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Mentor row
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.lightBlue,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: AppColors.cardWhite,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.primaryBlue.withValues(alpha: 0.3)),
+                  ),
+                  child: const Icon(
+                    Icons.star_rounded,
+                    size: 20,
+                    color: AppColors.primaryBlue,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Mentor',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primaryBlue,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      'Dr. Priti Uparkar',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 14),
+          const Text(
+            'Developed by',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+              letterSpacing: 0.3,
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Team member list
+          ...teamMembers.asMap().entries.map((entry) {
+            final idx = entry.key + 1;
+            final (name, icon) = entry.value;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundColor: AppColors.purpleStart.withValues(alpha: 0.12),
+                    child: Text(
+                      '$idx',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.purpleStart,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
       ),
     );
   }
 }
-
-class TeamMember {
-  final String name;
-
-  TeamMember(this.name);
-}
-
-

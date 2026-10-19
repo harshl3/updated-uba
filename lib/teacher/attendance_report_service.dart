@@ -1,7 +1,26 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:excel/excel.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import 'file_saver/file_saver.dart';
+
+/// Result object for generated attendance report
+class AttendanceReportResult {
+  final String filePath;
+  final String fileName;
+  final List<int> bytes;
+  final String className;
+  final DateTime reportDate;
+
+  const AttendanceReportResult({
+    required this.filePath,
+    required this.fileName,
+    required this.bytes,
+    required this.className,
+    required this.reportDate,
+  });
+}
 
 /// Service for generating Excel attendance reports
 ///
@@ -16,11 +35,11 @@ class AttendanceReportService {
   /// - reportDate: Specific date for the attendance report
   ///
   /// Returns:
-  /// - Path to the generated Excel file
+  /// - [AttendanceReportResult] containing file path, name, and bytes
   ///
   /// Throws:
   /// - Exception if file creation fails
-  Future<String> generateExcelReport({
+  Future<AttendanceReportResult> generateExcelReport({
     required List<QueryDocumentSnapshot> attendanceRecords,
     required String className,
     required DateTime reportDate,
@@ -98,10 +117,10 @@ class AttendanceReportService {
     // Auto-fit column widths
     _autoFitColumns(sheet);
 
-    // Save file to device storage
-    final filePath = await _saveExcelFile(excel, className, reportDate);
+    // Save file to device storage or initiate web download
+    final result = await _saveExcelFile(excel, className, reportDate);
 
-    return filePath;
+    return result;
   }
 
   /// Auto-fits column widths and applies formatting to cells
@@ -200,29 +219,38 @@ class AttendanceReportService {
     }
   }
 
-  /// Saves Excel file to device storage
-  /// Returns the file path
-  Future<String> _saveExcelFile(
+  /// Saves Excel file to device storage or downloads in browser on web
+  /// Returns [AttendanceReportResult]
+  Future<AttendanceReportResult> _saveExcelFile(
     Excel excel,
     String className,
     DateTime reportDate,
   ) async {
-    final directory = await getApplicationDocumentsDirectory();
-
     // Create filename with class name and date
     final filename = _generateFilename(className, reportDate);
-    final filePath = '${directory.path}/$filename';
+
+    // Save the Excel file to bytes
+    final bytes = excel.save();
+    if (bytes == null || bytes.isEmpty) {
+      throw Exception('Excel save returned empty bytes');
+    }
+
+    if (kIsWeb) {
+      print('DEBUG: Running on Web, initiating browser download for: $filename');
+      await downloadWebFile(bytes: bytes, fileName: filename);
+      return AttendanceReportResult(
+        filePath: filename,
+        fileName: filename,
+        bytes: bytes,
+        className: className,
+        reportDate: reportDate,
+      );
+    }
 
     try {
+      final directory = await getApplicationDocumentsDirectory();
+      final filePath = '${directory.path}/$filename';
       print('DEBUG: Saving Excel file to: $filePath');
-
-      // Save the Excel file to bytes
-      final bytes = excel.save();
-      if (bytes == null || bytes.isEmpty) {
-        throw Exception('Excel save returned empty bytes');
-      }
-
-      print('DEBUG: Excel bytes generated, size: ${bytes.length} bytes');
 
       // Write bytes to file
       final file = File(filePath);
@@ -244,7 +272,13 @@ class AttendanceReportService {
 
       print('DEBUG: File verification passed');
 
-      return filePath;
+      return AttendanceReportResult(
+        filePath: filePath,
+        fileName: filename,
+        bytes: bytes,
+        className: className,
+        reportDate: reportDate,
+      );
     } catch (e) {
       throw Exception('Failed to save Excel file: ${e.toString()}');
     }

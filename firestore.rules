@@ -115,8 +115,8 @@ service cloud.firestore {
     // SVPCET_UPDATES COLLECTION
     // ============================================
     match /svpcet_updates/{updateId} {
-      // Allow read if user is authenticated
-      allow read: if isAuthenticated();
+      // Allow read for all users (teachers, students, announcements)
+      allow read: if true;
       
       // Allow create if user is authenticated (teacher creating update)
       allow create: if isAuthenticated() && 

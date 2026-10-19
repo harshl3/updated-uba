@@ -3,104 +3,202 @@ import 'login_page.dart';
 import 'constants/app_constants.dart';
 import 'theme/app_colors.dart';
 
-/// Role selection page - allows users to choose between Teacher or Student login.
-/// 
-/// After selecting a role, users are taken to the appropriate login page.
+/// Role Selection Page
+///
+/// Allows users to choose between Teacher and Student login
+/// for their selected school.
 class RoleSelectionPage extends StatelessWidget {
   final String schoolCode;
+
   const RoleSelectionPage({super.key, required this.schoolCode});
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Select Role"),
-      ),
-      body: Container(
-        padding: const EdgeInsets.all(24),
-        color: AppColors.backgroundLight,
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // School info card
-              Card(
-                elevation: 8,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+  Widget _buildRoleCard({
+    required BuildContext context,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color accentColor,
+    required Color iconBgColor,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(18),
+          child: Ink(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppColors.cardWhite,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppColors.borderLight, width: 1.2),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.cardShadow,
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
+              ],
+            ),
+            child: Row(
+              children: [
+                // Icon Avatar
+                Container(
+                  width: 58,
+                  height: 58,
+                  decoration: BoxDecoration(
+                    color: iconBgColor,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      icon,
+                      size: 30,
+                      color: accentColor,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+
+                // Title & Subtitle
+                Expanded(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
-                        Icons.school,
-                        size: 48,
-                        color: AppColors.primaryBlue,
-                      ),
-                      const SizedBox(height: 12),
                       Text(
-                        'School $schoolCode',
+                        title,
                         style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primaryBlue,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        "Select Your Role",
-                        style: TextStyle(
-                          fontSize: 18,
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          fontSize: 13,
                           color: AppColors.textSecondary,
+                          height: 1.3,
                         ),
                       ),
                     ],
                   ),
                 ),
-              ),
-              const SizedBox(height: 40),
-              // Student button
-              SizedBox(
-                width: double.infinity,
-                height: 70,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => LoginPage(
-                          schoolCode: schoolCode,
-                          role: AppConstants.roleStudent,
-                        ),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.person, size: 28),
-                  label: const Text(
-                    "Student",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+
+                // Trailing Arrow
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.lightBlueAlt,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.borderLight),
                   ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.green,
-                    foregroundColor: AppColors.textWhite,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 4,
+                  child: Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 14,
+                    color: accentColor,
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              // Teacher button
-              SizedBox(
-                width: double.infinity,
-                height: 70,
-                child: ElevatedButton.icon(
-                  onPressed: () {
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.backgroundLight,
+      appBar: AppBar(
+        title: const Text("Select Role"),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Selected School Badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardWhite,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: AppColors.borderLight),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.cardShadow,
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.school_rounded,
+                        size: 20,
+                        color: AppColors.primaryBlue,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'School $schoolCode',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primaryBlue,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Screen Title
+                const Text(
+                  "Choose Your Role",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                const SizedBox(height: 6),
+
+                // Supporting Message
+                const Text(
+                  "Select whether you are accessing as a Teacher or a Student.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 32),
+
+                // Teacher Card (Primary Blue)
+                _buildRoleCard(
+                  context: context,
+                  title: "Teacher",
+                  subtitle: "Mark attendance, manage students & generate reports",
+                  icon: Icons.badge_rounded,
+                  accentColor: AppColors.primaryBlue,
+                  iconBgColor: AppColors.lightBlue,
+                  onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -111,35 +209,30 @@ class RoleSelectionPage extends StatelessWidget {
                       ),
                     );
                   },
-                  icon: const Icon(Icons.school, size: 28),
-                  label: const Text(
-                    "Teacher",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryBlue,
-                    foregroundColor: AppColors.textWhite,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 4,
-                  ),
                 ),
-              ),
-              const SizedBox(height: 32),
-              // Info text
-              const Text(
-                'Choose your role to continue',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
-                  fontStyle: FontStyle.italic,
+
+                // Student Card (Green accent)
+                _buildRoleCard(
+                  context: context,
+                  title: "Student",
+                  subtitle: "View your attendance, performance & class updates",
+                  icon: Icons.person_rounded,
+                  accentColor: AppColors.green,
+                  iconBgColor: AppColors.greenLight,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LoginPage(
+                          schoolCode: schoolCode,
+                          role: AppConstants.roleStudent,
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
